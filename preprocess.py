@@ -37,7 +37,7 @@ class Subset:
     def y(self):
         return self._y
 
-    def to_dict(self):
+    def __dict__(self):
         return {"X": self._X, "y": self._y}
 
     @classmethod
