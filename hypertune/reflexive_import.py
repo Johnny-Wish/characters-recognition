@@ -1,10 +1,6 @@
 import sys
 import os
 
-root_dir = "/".join(os.path.split(__file__)[:-2])
-print(root_dir)
-sys.path.append(os.path.join(root_dir, "sklearn_models"))
-
 
 class ReflexiveImporter:
     def __init__(self, module_name, package_name="sklearn_models",
