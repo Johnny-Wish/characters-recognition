@@ -1,4 +1,4 @@
 dataset.zip
 dataset/
 .idea/
-*__pycache__/
+*pyc
