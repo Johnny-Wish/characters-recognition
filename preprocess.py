@@ -17,19 +17,27 @@ from scipy.io import loadmat
 class Subset:
     def __init__(self, X=None, y=None):
         if X is None:
-            self.X = []
+            self._X = []
         else:
-            self.X = X
+            self._X = X
 
         if y is None:
-            self.y = []
+            self._y = []
         else:
-            self.y = y
+            self._y = y
 
-        assert len(self.X) == len(self.y), "lengths of X and y differ: {} != {}".format(len(self.X), len(self.y))
+        assert len(self._X) == len(self._y), "lengths of X and y differ: {} != {}".format(len(self._X), len(self._y))
+
+    @property
+    def X(self):
+        return self._X
+
+    @property
+    def y(self):
+        return self._y
 
     def to_dict(self):
-        return {"X": self.X, "y": self.y}
+        return {"X": self._X, "y": self._y}
 
     @classmethod
     def from_dict(cls, d):
