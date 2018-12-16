@@ -1,5 +1,7 @@
+import os
 import argparse
 from preprocess import Dataset
+from global_utils import dump
 from .search_session import SearchSession
 from .reflexive_import import ReflexiveImporter
 
@@ -15,6 +17,7 @@ if __name__ == '__main__':
                         help="name of the parameter_distribution variable in the above `module`")
     parser.add_argument("--n_iter", default=200, type=int, help="number of iterations to run random searching")
     parser.add_argument("--cv", default=5, type=int, help="number of folds for cross validation while searching")
+    parser.add_argument("--outf", default="/output", help="folder to dump search and test results")
     opt = parser.parse_args()
 
     dataset = Dataset(opt.datafile, opt.dataroot)
@@ -25,8 +28,10 @@ if __name__ == '__main__':
     session.fit()
     session.report_best()
     session.report_result()
+    dump(session.results, os.path.join(opt.outf, "search-results.pkl"))
 
     # test the best estimator found
     session.test()
     for metric in session.test_result:
         print("testing {}: {}".format(metric, session.test_result[metric]))
+    dump(session.test_result, os.path.join(opt.outf, "test-results.pkl"))

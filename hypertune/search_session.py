@@ -33,7 +33,7 @@ class SearchSession:
         return self._tested
 
     @property
-    def results(self):
+    def search_results(self):
         return self._results
 
     def report_best(self, best=True):
