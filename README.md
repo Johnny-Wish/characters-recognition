@@ -43,4 +43,4 @@ In particular, the `temp` package is used only for testing purpose of reflexive 
 
 ## ETA
 
-Although the deadline is May 2019, the project is such a trivial task that I plan on finish it within a few days. However, due to the number of final examinations I have in future weeks, there might be some delay. 
+Although the deadline is May 2019, the project is such a trivial task that I plan on finishing it within a few days. However, due to the number of final examinations I have in future weeks, there might be some delay. 
