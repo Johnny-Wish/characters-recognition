@@ -1,5 +1,5 @@
 from sklearn.neural_network import MLPClassifier
-from .neural_net_config import sizes, random_seed as seed
+from neural_net_config import sizes, random_seed as seed
 
 model = MLPClassifier()
 parameter_distribution = {
