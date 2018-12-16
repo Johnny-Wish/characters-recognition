@@ -67,3 +67,6 @@ class Dataset:
         instance.test = d.get("test")
         instance.mapping = d.get("mapping")
         return instance
+
+    def __repr__(self):
+        return "<Dataset: train={}, test={}>".format(self.train, self.test)
