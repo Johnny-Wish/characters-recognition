@@ -27,3 +27,13 @@ class Subset:
             self.y = y
 
         assert len(self.X) == len(self.y)
+
+    def to_dict(self):
+        return {"X": self.X, "y": self.y}
+
+    @classmethod
+    def from_dict(cls, d):
+        return cls(
+            X=d.get("X", None),
+            y=d.get("y", None),
+        )
