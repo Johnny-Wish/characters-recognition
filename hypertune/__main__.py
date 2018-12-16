@@ -28,7 +28,7 @@ if __name__ == '__main__':
     session.fit()
     session.report_best()
     session.report_result()
-    dump(session.results, os.path.join(opt.outf, "search-results.pkl"))
+    dump(session.search_results, os.path.join(opt.outf, "search-results.pkl"))
 
     # test the best estimator found
     session.test()
