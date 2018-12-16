@@ -53,20 +53,32 @@ class Dataset:
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
-        self.train = Subset(X=train[0], y=train[1])
-        self.test = Subset(X=test[0], y=test[1])
-        self.mapping = mapping
+        self._train = Subset(X=train[0], y=train[1])
+        self._test = Subset(X=test[0], y=test[1])
+        self._mapping = mapping
+
+    @property
+    def train(self):
+        return self._train
+
+    @property
+    def test(self):
+        return self._test
+
+    @property
+    def mapping(self):
+        return self._mapping
 
     def __dict__(self):
-        return {"train": self.train, "test": self.test, "mapping": self.mapping}
+        return {"train": self._train, "test": self._test, "mapping": self._mapping}
 
     @classmethod
     def from_dict(cls, d):
         instance = Dataset.__new__(cls)
-        instance.train = d.get("train")
-        instance.test = d.get("test")
-        instance.mapping = d.get("mapping")
+        instance._train = d.get("train")
+        instance._test = d.get("test")
+        instance._mapping = d.get("mapping")
         return instance
 
     def __repr__(self):
-        return "<Dataset: train={}, test={}>".format(self.train, self.test)
+        return "<Dataset: train={}, test={}>".format(self._train, self._test)
