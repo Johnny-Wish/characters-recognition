@@ -9,7 +9,7 @@ sys.path.append(os.path.join(root_dir, "sklearn_models"))
 class ReflexiveImporter:
     def __init__(self, module_name, package_name="sklearn_models",
                  model_name="model", param_name="parameter_distribution"):
-        root_dir = "/".join(os.path.split(__file__)[:-2])  # note: [-1] is filename, [-2] is subfolder name
+        root_dir = "/".join(__file__.split("/")[:-2])
         sys.path.append(os.path.join(root_dir, package_name))
         self._package_name = package_name
         self._module_name = module_name
