@@ -47,6 +47,9 @@ class Subset:
             y=d.get("y", None),
         )
 
+    def __repr__(self):
+        return "<Subset: X={}, y={}>".format(self._X, self._y)
+
 
 class Dataset:
     def __init__(self, filename="emnist-byclass.mat", folder="dataset"):
