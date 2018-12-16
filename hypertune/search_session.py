@@ -13,7 +13,7 @@ class SearchSession:
         # default value for search result
         self._result = None
         # dafault values for test result of the best estimator
-        self._acc, self._prec, self._rec, self._f1, self._supp = None, None, None, None, None
+        self._acc, self._pre, self._rec, self._f1, self._supp = None, None, None, None, None
         # default value for whether the model is fitted
         self._fitted = False
         # default value for whether the model is tested
