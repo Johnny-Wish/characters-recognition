@@ -56,3 +56,17 @@ class Dataset:
         self.train = Subset(X=train[0], y=train[1])
         self.test = Subset(X=test[0], y=test[1])
         self.mapping = mapping
+
+    def __dict__(self):
+        """
+        :return: a dict of fields in Dataset; note that train, test, mapping are all references here
+        """
+        return {"train": self.train, "test": self.test, "mapping": self.mapping}
+
+    @classmethod
+    def from_dict(cls, d):
+        instance = Dataset.__new__(cls)
+        instance.train = d.get("train")
+        instance.test = d.get("test")
+        instance.mapping = d.get("mapping")
+        return instance
