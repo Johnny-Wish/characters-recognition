@@ -26,7 +26,7 @@ class Subset:
         else:
             self.y = y
 
-        assert len(self.X) == len(self.y)
+        assert len(self.X) == len(self.y), "lengths of X and y differ: {} != {}".format(len(self.X), len(self.y))
 
     def to_dict(self):
         return {"X": self.X, "y": self.y}
