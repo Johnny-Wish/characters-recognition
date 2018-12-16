@@ -58,9 +58,6 @@ class Dataset:
         self.mapping = mapping
 
     def __dict__(self):
-        """
-        :return: a dict of fields in Dataset; note that train, test, mapping are all references here
-        """
         return {"train": self.train, "test": self.test, "mapping": self.mapping}
 
     @classmethod
