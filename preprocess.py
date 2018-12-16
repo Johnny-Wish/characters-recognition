@@ -13,3 +13,17 @@ This file contains pre-processing tools of the dataset, assumed to be of a stand
 
 from scipy.io import loadmat
 
+
+class Subset:
+    def __init__(self, X=None, y=None):
+        if X is None:
+            self.X = []
+        else:
+            self.X = X
+
+        if y is None:
+            self.y = []
+        else:
+            self.y = y
+
+        assert len(self.X) == len(self.y)
