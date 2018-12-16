@@ -39,14 +39,14 @@ class TestSubset(unittest.TestCase):
             "y": np.random.rand(self.n_samples),
         }
         subset = Subset.from_dict(d)
-        d2 = dict(subset)
-        self.assertEqual(d['X'], d2['X'])
-        self.assertEqual(d['y'], d2['y'])
+        d2 = subset.__dict__()
+        self.assertTrue((d['X'] == d2['X']).all())
+        self.assertTrue((d['y'] == d2['y']).all())
 
     def test_raise_error(self):
         with self.assertRaises(AssertionError):
             Subset(
-                np.random.rand(self.n_samples+1, self.n_dim),
+                np.random.rand(self.n_samples + 1, self.n_dim),
                 np.random.rand(self.n_samples)
             )
 
