@@ -11,6 +11,7 @@ License: https://choosealicense.com/licenses/gpl-3.0/
 This file contains pre-processing tools of the dataset, assumed to be of a standard .mat format
 """
 
+import os
 from scipy.io import loadmat
 
 
@@ -45,3 +46,13 @@ class Subset:
             X=d.get("X", None),
             y=d.get("y", None),
         )
+
+
+class Dataset:
+    def __init__(self, filename="emnist-byclass.mat", folder="dataset"):
+        dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
+        train, test, mapping = dataset[0][0]
+        train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
+        self.train = Subset(X=train[0], y=train[1])
+        self.test = Subset(X=test[0], y=test[1])
+        self.mapping = mapping
