@@ -54,6 +54,22 @@ class TestSubset(unittest.TestCase):
 class TestDataset(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestDataset, self).__init__(*args, **kwargs)
-        self.dataset = Dataset()
+        self.test_build_dataset()
 
-    # def test_
+    def test_build_dataset(self):
+        self.dataset = Dataset(folder="../dataset")
+
+    def test_sample_size(self):
+        self.assertEqual(self.dataset.train.X.shape[0], self.dataset.train.y.shape[0])
+        self.assertEqual(self.dataset.test.X.shape[0], self.dataset.test.y.shape[0])
+
+    def test_dimension_size(self):
+        self.assertEqual(self.dataset.train.X.shape[1], self.dataset.test.X.shape[1])
+        self.assertEqual(self.dataset.train.y.shape[1], self.dataset.test.y.shape[1])
+
+    def test_type(self):
+        self.assertIsInstance(self.dataset.mapping, np.ndarray)
+        self.assertIsInstance(self.dataset.train.X, np.ndarray)
+        self.assertIsInstance(self.dataset.train.y, np.ndarray)
+        self.assertIsInstance(self.dataset.test.X, np.ndarray)
+        self.assertIsInstance(self.dataset.test.y, np.ndarray)
