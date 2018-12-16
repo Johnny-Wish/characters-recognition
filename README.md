@@ -35,6 +35,12 @@ The last part is not necessary if you insist on using a different path or folder
 
 4. `n_iter` randomized search will be made, with the CV/test results being printed to screen and saved to the folder `outf`, where `n_iter` and `outf` are specified in the previous step.
 
+## Unit Tests
+
+All classes (except for essentially trivial ones) are equipped with respective unit test cases in `test/test_xxx.py`, contribution to test cases are encouraged for code robustness.
+
+In particular, the `temp` package is used only for testing purpose of reflexive import (see `hypertune/reflexive_import.py` and `test/test_relfexive_import.py`). No changes should be made to this package.
+
 ## ETA
 
 Although the deadline is May 2019, the project is such a trivial task that I plan on finish it within a few days. However, due to the number of final examinations I have in future weeks, there might be some delay. 
