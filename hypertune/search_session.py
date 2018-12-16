@@ -104,3 +104,17 @@ class SearchSession:
             self.test()
 
         return self._supp
+
+    @property
+    def test_result(self):
+        if not self.tested:
+            print("searcher not tested yet")
+            self.test()
+
+        return {
+            "accuracy": self.acc,
+            "precision": self.pre,
+            "recall": self.rec,
+            "f1-score": self.f1,
+            "support": self.supp,
+        }
