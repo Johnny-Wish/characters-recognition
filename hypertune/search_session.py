@@ -11,7 +11,7 @@ class SearchSession:
         self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1", cv=cv, verbose=1,
                                            random_state=0, return_train_score=False)
         # default value for search result
-        self._result = None
+        self._results = None
         # dafault values for test result of the best estimator
         self._acc, self._pre, self._rec, self._f1, self._supp = None, None, None, None, None
         # default value for whether the model is fitted
@@ -22,7 +22,7 @@ class SearchSession:
     def fit(self):
         self.searcher.fit(self.dataset.train.X, self.dataset.train.y)
         self._fitted = True
-        self._result = pd.DataFrame(self.searcher.cv_results_)
+        self._results = pd.DataFrame(self.searcher.cv_results_)
 
     @property
     def fitted(self):
@@ -31,6 +31,10 @@ class SearchSession:
     @property
     def tested(self):
         return self._tested
+
+    @property
+    def results(self):
+        return self._results
 
     def report_best(self, best=True):
         if not self._fitted:
@@ -51,7 +55,7 @@ class SearchSession:
             print("searcher not fitted yet")
             self.fit()
 
-        print_search_result(self._result, n=-1)
+        print_search_result(self._results, n=-1)
 
     def test(self):
         if not self._fitted:
