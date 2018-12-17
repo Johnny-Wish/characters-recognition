@@ -17,7 +17,6 @@ class TestSearchSession(unittest.TestCase):
         dataset = Dataset(folder="../dataset")
         self.session = SearchSession(importer.model, importer.param_dist, dataset, n_iter=1, cv=3)
 
-
     def test_fitting_process(self):
         self.session.fit()
 
