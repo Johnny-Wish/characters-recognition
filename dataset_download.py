@@ -20,7 +20,7 @@ def attemptive_download(url, location, force=False):
     return True
 
 
-def unzip(zipped_path, extracted_path, force=False):
+def attemptive_unzip(zipped_path, extracted_path, force=False):
     """
     unzip a file from `zipped_path` to `extracted_path`
     :param zipped_path: path of the zipped file
