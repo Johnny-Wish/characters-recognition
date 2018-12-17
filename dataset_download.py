@@ -37,9 +37,17 @@ def attemptive_unzip(zipped_path, extracted_path, force=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip",
-                        help="URL for downloading")
-    parser.add_argument("--location", default="/Users/liushuheng/Desktop/dataset.zip",
-                        help="location to save downloaded file")
+                        help="URL for zipped dataset")
+    parser.add_argument("--location", default="dataset", help="location to save downloaded dataset")
     opt = parser.parse_args()
+    url = opt.url
+    zipped = opt.location + ".zip"
+    extracted = opt.location
 
-    attemptive_download(opt.url, opt.location)
+    print("Downloading dataset")
+    if not attemptive_download(url, zipped):
+        print("Failed to download resource from {} to {}. Try manual downloading instead.".format(url, zipped))
+
+    print("Extracting dataset")
+    if not attemptive_unzip(zipped, extracted):
+        print("Failed to extract resource from {} to {}. Try manual unzipping instead.".format(zipped, extracted))
