@@ -44,6 +44,8 @@ class Subset:
         elif callable(encoder):
             self._y = encoder(self._y)
 
+        assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
+
     @property
     def X(self):
         return self._X
