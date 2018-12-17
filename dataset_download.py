@@ -1,5 +1,6 @@
 import os
 import argparse
+import zipfile
 from urllib.request import urlretrieve
 
 
@@ -16,6 +17,20 @@ def attemptive_download(url, location, force=False):
         return False
 
     urlretrieve(url, location)
+    return True
+
+
+def unzip(zipped_path, extracted_path, force=False):
+    """
+    unzip a file from `zipped_path` to `extracted_path`
+    :param zipped_path: path of the zipped file
+    :param extracted_path: path for extracted file/folder
+    :return: bool, state of successful zipping
+    """
+    if os.path.exists(extracted_path) and not force:
+        return False
+    with zipfile.ZipFile(zipped_path, 'r') as zip_ref:
+        zip_ref.extractall(extracted_path)
     return True
 
 
