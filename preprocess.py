@@ -27,8 +27,6 @@ class Subset:
         else:
             self._y = y
 
-        assert len(self._X) == len(self._y), "lengths of X and y differ: {} != {}".format(len(self._X), len(self._y))
-
     @property
     def X(self):
         return self._X

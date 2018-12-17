@@ -18,6 +18,10 @@ class TestSubset(unittest.TestCase):
     def test_equal_length(self):
         self.assertEqual(len(self.subset.X), len(self.subset.y))
 
+    def test_X_y_shape(self):
+        self.assertEqual(len(self.subset.X.shape), 2)
+        self.assertEqual(len(self.subset.y.shape), 1)
+
     def test_not_none(self):
         self.assertIsNotNone(self.subset.X)
         self.assertIsNotNone(self.subset.y)
@@ -65,7 +69,8 @@ class TestDataset(unittest.TestCase):
 
     def test_dimension_size(self):
         self.assertEqual(self.dataset.train.X.shape[1], self.dataset.test.X.shape[1])
-        self.assertEqual(self.dataset.train.y.shape[1], self.dataset.test.y.shape[1])
+        self.assertEqual(len(self.dataset.train.y.shape), 1)
+        self.assertEqual(len(self.dataset.test.y.shape), 1)
 
     def test_type(self):
         self.assertIsInstance(self.dataset.mapping, np.ndarray)
