@@ -12,11 +12,19 @@ This file contains pre-processing tools of the dataset, assumed to be of a stand
 """
 
 import os
+import numpy as np
 from scipy.io import loadmat
+from sklearn.preprocessing import LabelEncoder
 
 
 class Subset:
-    def __init__(self, X=None, y=None):
+    def __init__(self, X=None, y=None, encoder=None):
+        """
+        A object simulating the training set / testing test / validation set of a super dataset
+        :param X: A 2-dim sequence, n_samples x n_feature_dims
+        :param y: A 1-dim/2-dim sequence, n_samples or n_samples x 1
+        :param encoder: a fitted LabelEncoder instance or a callable that returns an encoded label vector
+        """
         if X is None:
             self._X = []
         else:
@@ -27,7 +35,16 @@ class Subset:
         else:
             self._y = y
 
-        assert len(self._X) == len(self._y), "lengths of X and y differ: {} != {}".format(len(self._X), len(self._y))
+        if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
+            self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+
+        # if an encoder is given, encode labels accordingly
+        if isinstance(encoder, LabelEncoder):
+            self._y = encoder.transform(self._y)
+        elif callable(encoder):
+            self._y = encoder(self._y)
+
+        assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
 
     @property
     def X(self):
