@@ -1,4 +1,5 @@
 import os
+import sys
 import argparse
 import zipfile
 from urllib.request import urlretrieve
@@ -45,9 +46,15 @@ if __name__ == '__main__':
     extracted = opt.location
 
     print("Downloading dataset")
-    if not attemptive_download(url, zipped):
+    if attemptive_download(url, zipped):
+        print("Downloading successful")
+    else:
         print("Failed to download resource from {} to {}. Try manual downloading instead.".format(url, zipped))
+        sys.exit(1)
 
     print("Extracting dataset")
-    if not attemptive_unzip(zipped, extracted):
+    if attemptive_unzip(zipped, extracted):
+        print("Extraction successful")
+    else:
         print("Failed to extract resource from {} to {}. Try manual unzipping instead.".format(zipped, extracted))
+        sys.exit(1)
