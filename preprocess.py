@@ -69,13 +69,35 @@ class Subset:
 
 
 class Dataset:
-    def __init__(self, filename="emnist-byclass.mat", folder="dataset"):
+    def __init__(self, filename="emnist-byclass.mat", folder="dataset", label_order=None):
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
-        self._train = Subset(X=train[0], y=train[1])
-        self._test = Subset(X=test[0], y=test[1])
+
+        if label_order == "shift":
+            lower_bound = min(np.min(train[1]), np.min(test[1]))
+            self._encoder = lambda old: old - lower_bound
+            self._decoder = lambda new: new + lower_bound
+        elif label_order == "reorder":
+            self._encoder = LabelEncoder().fit(train[1])
+            self._decoder = self._encoder
+        else:
+            if label_order is not None:
+                print("unrecognized label order {}".format(label_order))
+            self._encoder = None
+            self._decoder = None
+
+        self._train = Subset(X=train[0], y=train[1], encoder=self._encoder)
+        self._test = Subset(X=test[0], y=test[1], encoder=self._encoder)
         self._mapping = mapping
+
+    @property
+    def encoder(self):
+        return self._encoder
+
+    @property
+    def decoder(self):
+        return self._decoder
 
     @property
     def train(self):
