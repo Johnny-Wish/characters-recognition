@@ -1,7 +1,9 @@
 import os
 import sys
+import shutil
 import argparse
 import zipfile
+from os.path import join
 from urllib.request import urlretrieve
 
 
@@ -38,12 +40,12 @@ def attemptive_unzip(zipped_path, extracted_path, force=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip",
-                        help="URL for zipped dataset")
-    parser.add_argument("--location", default="dataset", help="location to save downloaded dataset")
+                        help="URL for zipped dataset, better to use the default")
+    parser.add_argument("--location", default=".", help="location to save downloaded dataset")
     opt = parser.parse_args()
     url = opt.url
-    zipped = opt.location + ".zip"
-    extracted = opt.location
+    zipped = join(opt.location, "dataset.zip")
+    extracted = join(opt.location, "dataset")
 
     print("Downloading dataset")
     if attemptive_download(url, zipped):
@@ -58,3 +60,7 @@ if __name__ == '__main__':
     else:
         print("Failed to extract resource from {} to {}. Try manual unzipping instead.".format(zipped, extracted))
         sys.exit(1)
+
+    for file in os.listdir(join(extracted, "matlab")):  # after extraction, files are contained in a `matlab` folder
+        shutil.move(join(extracted, "matlab", file), join(extracted, file))
+    shutil.rmtree(join(extracted, "matlab"))
