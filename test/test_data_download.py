@@ -1,7 +1,7 @@
 import os
 import shutil
 import unittest
-from dataset_download import attemptive_download, unzip
+from dataset_download import attemptive_download, attemptive_unzip
 
 
 class TestDatasetDownload(unittest.TestCase):
@@ -24,9 +24,9 @@ class TestDatasetDownload(unittest.TestCase):
 
     def test_attemptive_unzip(self):
         attemptive_download(self.url, self.location)
-        self.assertTrue(unzip(self.location, self.extraction))
-        self.assertFalse(unzip(self.location, self.extraction, force=False))
-        self.assertTrue(unzip(self.location, self.extraction, force=True))
+        self.assertTrue(attemptive_unzip(self.location, self.extraction))
+        self.assertFalse(attemptive_unzip(self.location, self.extraction, force=False))
+        self.assertTrue(attemptive_unzip(self.location, self.extraction, force=True))
         if os.path.exists(self.location):
             os.remove(self.location)
         if os.path.exists(self.location):

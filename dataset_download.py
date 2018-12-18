@@ -1,6 +1,9 @@
 import os
+import sys
+import shutil
 import argparse
 import zipfile
+from os.path import join
 from urllib.request import urlretrieve
 
 
@@ -20,7 +23,7 @@ def attemptive_download(url, location, force=False):
     return True
 
 
-def unzip(zipped_path, extracted_path, force=False):
+def attemptive_unzip(zipped_path, extracted_path, force=False):
     """
     unzip a file from `zipped_path` to `extracted_path`
     :param zipped_path: path of the zipped file
@@ -37,9 +40,27 @@ def unzip(zipped_path, extracted_path, force=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip",
-                        help="URL for downloading")
-    parser.add_argument("--location", default="/Users/liushuheng/Desktop/dataset.zip",
-                        help="location to save downloaded file")
+                        help="URL for zipped dataset, better to use the default")
+    parser.add_argument("--location", default=".", help="location to save downloaded dataset")
     opt = parser.parse_args()
+    url = opt.url
+    zipped = join(opt.location, "dataset.zip")
+    extracted = join(opt.location, "dataset")
 
-    attemptive_download(opt.url, opt.location)
+    print("Downloading dataset")
+    if attemptive_download(url, zipped):
+        print("Downloading successful")
+    else:
+        print("Failed to download resource from {} to {}. Try manual downloading instead.".format(url, zipped))
+        sys.exit(1)
+
+    print("Extracting dataset")
+    if attemptive_unzip(zipped, extracted):
+        print("Extraction successful")
+    else:
+        print("Failed to extract resource from {} to {}. Try manual unzipping instead.".format(zipped, extracted))
+        sys.exit(1)
+
+    for file in os.listdir(join(extracted, "matlab")):  # after extraction, files are contained in a `matlab` folder
+        shutil.move(join(extracted, "matlab", file), join(extracted, file))
+    shutil.rmtree(join(extracted, "matlab"))
