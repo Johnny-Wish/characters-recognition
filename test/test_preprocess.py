@@ -58,10 +58,7 @@ class TestSubset(unittest.TestCase):
 class TestDataset(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestDataset, self).__init__(*args, **kwargs)
-        self.test_build_dataset()
-
-    def test_build_dataset(self):
-        self.dataset = Dataset(folder="../dataset")
+        self.dataset = Dataset(folder="../dataset", label_order="shift")
 
     def test_sample_size(self):
         self.assertEqual(self.dataset.train.X.shape[0], self.dataset.train.y.shape[0])
