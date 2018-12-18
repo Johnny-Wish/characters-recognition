@@ -16,7 +16,7 @@ In the meanwhile, I would like to set up this project in a docker container in t
 
 1. Kindly Install python3.6 and the latest versions of scikit-learn and tensorflow
 2. Clone the repository to your local machine.
-3. Download the 800 MiB [dataset](http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip) and unzip it.
+3. Download the 700 MiB [dataset](http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip) and unzip it.
 4. Rename the unzipped folder to `dataset` and move it under the parent directory of this project.
 
 The last part is not necessary if you insist on using a different path or folder name. However, relevant changes must be made to the args passed to the program. Otherwise, the default option is to look into a `dataset/` subfolder under the project root.
