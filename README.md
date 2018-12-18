@@ -19,7 +19,9 @@ In the meanwhile, I would like to set up this project in a docker container in t
 3. Download the 700 MiB [dataset](http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip) and unzip it.
 4. Rename the unzipped folder to `dataset` and move it under the parent directory of this project.
 
-The last part is not necessary if you insist on using a different path or folder name. However, relevant changes must be made to the args passed to the program. Otherwise, the default option is to look into a `dataset/` subfolder under the project root.
+Step 4 is not necessary if you insist on using a different path or folder name. However, relevant changes must be made to the args passed to the program. Otherwise, the default option is to look into a `dataset/` subfolder under the project root.
+
+An alternative for steps 3 and 4 is to run the command `python dataset_download.py` (make sure you have a python version of 3.x)
 
 ### Hypertuning with Sklearn
 
