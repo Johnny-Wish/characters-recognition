@@ -64,6 +64,15 @@ class Subset:
             y=d.get("y", None),
         )
 
+    def sampled(self, ratio=1.0):
+        total = len(self)
+        sample = int(total * ratio)
+        index = np.random.choice(np.arange(total), sample, replace=False)
+        return Subset(self._X[index], self._y[index])
+
+    def __len__(self):
+        return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
+
     def __repr__(self):
         return "<Subset: X={}, y={}>".format(self._X, self._y)
 
