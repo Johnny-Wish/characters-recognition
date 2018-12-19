@@ -97,8 +97,30 @@ class Dataset:
             self._decoder = None
 
         self._train = Subset(X=train[0], y=train[1], encoder=self._encoder)
+        self._sampled_train = self._train
+        self._train_ratio = 1.0
         self._test = Subset(X=test[0], y=test[1], encoder=self._encoder)
+        self._sampled_test = self._test
+        self._test_ratio = 1.0
         self._mapping = mapping
+
+    def sample_train(self, ratio=0.1):
+        self._train_ratio = ratio
+        self._sampled_train = self._train.sampled(ratio)
+        return self
+
+    def sample_test(self, ratio=0.1):
+        self._test_ratio = ratio
+        self._sampled_test = self._test.sampled(ratio)
+        return self
+
+    @property
+    def train_ratio(self):
+        return self._train_ratio
+
+    @property
+    def test_ratio(self):
+        return self._test_ratio
 
     @property
     def encoder(self):
@@ -110,11 +132,11 @@ class Dataset:
 
     @property
     def train(self):
-        return self._train
+        return self._sampled_train
 
     @property
     def test(self):
-        return self._test
+        return self._sampled_test
 
     @property
     def mapping(self):
