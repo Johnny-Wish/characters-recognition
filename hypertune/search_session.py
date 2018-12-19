@@ -8,11 +8,11 @@ from .cross_val_utils import print_search_result
 class SearchSession:
     def __init__(self, model, param_dist, dataset: Dataset, n_iter=200, cv=5):
         self.dataset = dataset
-        self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1", cv=cv, verbose=3,
+        self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1_micro", cv=cv, verbose=3,
                                            random_state=0, return_train_score=False, n_jobs=-1)
         # default value for search result
         self._results = None
-        # dafault values for test result of the best estimator
+        # default values for test result of the best estimator
         self._acc, self._pre, self._rec, self._f1, self._supp = None, None, None, None, None
         # default value for whether the model is fitted
         self._fitted = False
@@ -67,7 +67,7 @@ class SearchSession:
         y_true = self.dataset.test.y
         y_pred = self.searcher.best_estimator_.predict(self.dataset.test.X)
         self._acc = accuracy_score(y_true, y_pred)
-        self._pre, self._rec, self._f1, self._supp = precision_recall_fscore_support(y_true, y_pred, average="macro")
+        self._pre, self._rec, self._f1, self._supp = precision_recall_fscore_support(y_true, y_pred, average="micro")
 
     @property
     def acc(self):
