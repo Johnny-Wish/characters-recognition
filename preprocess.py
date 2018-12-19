@@ -64,9 +64,12 @@ class Subset:
             y=d.get("y", None),
         )
 
-    def sampled(self, ratio=1.0):
+    def sampled(self, size=1.0):
         total = len(self)
-        sample = int(total * ratio)
+        if isinstance(size, (int, np.integer)):
+            sample = min(total, size)
+        else:
+            sample = int(total * size)
         index = np.random.choice(np.arange(total), sample, replace=False)
         return Subset(self._X[index], self._y[index])
 
@@ -98,29 +101,29 @@ class Dataset:
 
         self._train = Subset(X=train[0], y=train[1], encoder=self._encoder)
         self._sampled_train = self._train
-        self._train_ratio = 1.0
+        self._train_size = len(self._train)
         self._test = Subset(X=test[0], y=test[1], encoder=self._encoder)
         self._sampled_test = self._test
-        self._test_ratio = 1.0
+        self._test_size = len(self._test)
         self._mapping = mapping
 
     def sample_train(self, ratio=0.1):
-        self._train_ratio = ratio
         self._sampled_train = self._train.sampled(ratio)
+        self._train_size = len(self._sampled_train)
         return self
 
     def sample_test(self, ratio=0.1):
-        self._test_ratio = ratio
         self._sampled_test = self._test.sampled(ratio)
+        self._test_size = len(self._sampled_test)
         return self
 
     @property
-    def train_ratio(self):
-        return self._train_ratio
+    def train_size(self):
+        return self._train_size
 
     @property
-    def test_ratio(self):
-        return self._test_ratio
+    def test_size(self):
+        return self._test_size
 
     @property
     def encoder(self):
