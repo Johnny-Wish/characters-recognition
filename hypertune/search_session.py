@@ -22,6 +22,7 @@ class SearchSession:
     def fit(self):
         self.searcher.fit(self.dataset.train.X, self.dataset.train.y)
         self._fitted = True
+        self._tested = False  # if the model is refitted, it needs to be re-tested
         self._results = pd.DataFrame(self.searcher.cv_results_)
 
     @property
