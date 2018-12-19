@@ -12,7 +12,7 @@ class SearchSession:
         self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1_micro", cv=cv, verbose=3,
                                            random_state=0, return_train_score=False, n_jobs=-1)
         # default value for search result
-        self._results = None
+        self._results = None  # type: pd.DataFrame
         # default values for test result of the best estimator
         self._acc, self._pre, self._rec, self._f1, self._supp = None, None, None, None, None
         # default value for whether the model is fitted
