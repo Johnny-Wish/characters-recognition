@@ -10,6 +10,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataroot", default="dataset", help="folder to hold dataset")
     parser.add_argument("--datafile", default="emnist-byclass.mat", help="filename of dataset")
+    parser.add_argument("--train_rate", default=0.01, type=float, help="ratio of training set to be used")
+    parser.add_argument("--test_rate", default=0.03, type=float, help="ratio of testing set to be used")
     parser.add_argument("--module", required=True, help="module name for model and param_dist")
     parser.add_argument("--package", default="sklearn_models", help="package to hold the above module")
     parser.add_argument("--model", default="model", help="name of the model variable in the above `module`")
@@ -20,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument("--outf", default="/output", help="folder to dump search and test results")
     opt = parser.parse_args()
 
-    dataset = Dataset(opt.datafile, opt.dataroot)
+    dataset = Dataset(opt.datafile, opt.dataroot).sample_train(opt.train_rate).sample_test(opt.test_rate)
     importer = ReflexiveImporter(opt.module, opt.package, opt.model, opt.param)
     session = SearchSession(importer.model, importer.param_dist, dataset, opt.n_iter, opt.cv)
 
