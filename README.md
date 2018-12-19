@@ -46,3 +46,8 @@ In particular, the `temp` package is used only for testing purpose of reflexive 
 ## ETA
 
 Although the deadline is May 2019, the project is such a trivial task that I plan on finishing it within a few days. However, due to the number of final examinations I have in future weeks, there might be some delay. 
+
+### Update on Dec 19, 2018
+
+Hypertuning interface finished and tested, using 1% of the training data and 3% of testing data, best F1 score at 72.5%. Check out the [logs](https://www.floydhub.com/wish1104/projects/character-recognition/7) and [dumped results](https://www.floydhub.com/wish1104/projects/character-recognition/7/output)
+
