@@ -54,12 +54,20 @@ class TestSubset(unittest.TestCase):
                 np.random.rand(self.n_samples)
             )
 
-    def test_sampled(self):
+    def test_sampled_ratio(self):
         self.assertEqual(len(self.subset.sampled(1.0)), self.n_samples)
         self.assertEqual(len(self.subset.sampled(0.5)), int(self.n_samples * 0.5))
         self.assertEqual(len(self.subset.sampled(0.333)), int(self.n_samples * 0.333))
+        self.assertEqual(len(self.subset.sampled(1.8)), self.n_samples)
+        self.assertEqual(len(self.subset.sampled(1808090909.9)), self.n_samples)
         another_ratio = np.random.rand(1)
         self.assertEqual(len(self.subset.sampled(another_ratio)), int(self.n_samples * another_ratio))
+
+    def test_sampled_integer(self):
+        self.assertEqual(len(self.subset.sampled(500)), 500)
+        self.assertEqual(len(self.subset.sampled(300)), 300)
+        self.assertEqual(len(self.subset.sampled(1000000)), 1000)
+        self.assertEqual(len(self.subset.sampled(1000)), 1000)
 
 
 class TestDataset(unittest.TestCase):
@@ -88,12 +96,32 @@ class TestDataset(unittest.TestCase):
     def test_sample_train(self):
         self.dataset.sample_train(0.5)
         self.assertEqual(len(self.dataset.train), int(self.n_train * 0.5))
+        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
 
         self.dataset.sample_test(0.3)
         self.assertEqual(len(self.dataset.test), int(self.n_test * 0.3))
+        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
 
         self.dataset.sample_train(0.2)
         self.assertEqual(len(self.dataset.train), int(self.n_train * 0.2))
+        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
 
         self.dataset.sample_test(1.0)
         self.assertEqual(len(self.dataset.test), self.n_test)
+        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
+
+        self.dataset.sample_test(3.0)
+        self.assertEqual(len(self.dataset.test), self.n_test)
+        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
+
+        self.dataset.sample_train(1000)
+        self.assertEqual(len(self.dataset.train), 1000)
+        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
+
+        self.dataset.sample_train(10000000000)
+        self.assertEqual(len(self.dataset.train), self.n_train)
+        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
+
+        self.dataset.sample_test(3534)
+        self.assertEqual(len(self.dataset.test), 3534)
+        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
