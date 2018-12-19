@@ -8,7 +8,7 @@ from .cross_val_utils import print_search_result
 class SearchSession:
     def __init__(self, model, param_dist, dataset: Dataset, n_iter=200, cv=5):
         self.dataset = dataset
-        self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1", cv=cv, verbose=1,
+        self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1", cv=cv, verbose=3,
                                            random_state=0, return_train_score=False, n_jobs=-1)
         # default value for search result
         self._results = None
