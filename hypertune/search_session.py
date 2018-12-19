@@ -69,6 +69,7 @@ class SearchSession:
         y_pred = self.searcher.best_estimator_.predict(self.dataset.test.X)
         self._acc = accuracy_score(y_true, y_pred)
         self._pre, self._rec, self._f1, self._supp = precision_recall_fscore_support(y_true, y_pred, average="micro")
+        self._tested = True
 
     @property
     def acc(self):
