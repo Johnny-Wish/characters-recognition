@@ -36,7 +36,7 @@ class SearchSession:
     def search_results(self):
         return self._results
 
-    def report_best(self, best=True):
+    def report_best(self):
         if not self._fitted:
             print("searcher not fitted yet")
             self.fit()
