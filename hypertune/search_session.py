@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
@@ -24,6 +25,14 @@ class SearchSession:
         self._fitted = True
         self._tested = False  # if the model is refitted, it needs to be re-tested
         self._results = pd.DataFrame(self.searcher.cv_results_)
+
+    def report_args(self):
+        print("Model being hypertuned are:", self.searcher.estimator)
+        print("Parameters being hypertuned are:", self.searcher.param_distributions)
+        print("Number of iterations to search is:", self.searcher.n_iter)
+        print("Number of folds for cross validation is:", self.searcher.cv)
+        print("{} samples in {} dimensions are being searched".format(*self.dataset.train.X.shape))
+        print("A total of {} unique labels are being searched".format(len(np.unique(self.dataset.train.y))))
 
     @property
     def fitted(self):
