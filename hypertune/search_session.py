@@ -8,11 +8,11 @@ from .cross_val_utils import print_search_result
 class SearchSession:
     def __init__(self, model, param_dist, dataset: Dataset, n_iter=200, cv=5):
         self.dataset = dataset
-        self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1", cv=cv, verbose=3,
+        self.searcher = RandomizedSearchCV(model, param_dist, n_iter=n_iter, scoring="f1_micro", cv=cv, verbose=3,
                                            random_state=0, return_train_score=False, n_jobs=-1)
         # default value for search result
         self._results = None
-        # dafault values for test result of the best estimator
+        # default values for test result of the best estimator
         self._acc, self._pre, self._rec, self._f1, self._supp = None, None, None, None, None
         # default value for whether the model is fitted
         self._fitted = False
@@ -22,6 +22,7 @@ class SearchSession:
     def fit(self):
         self.searcher.fit(self.dataset.train.X, self.dataset.train.y)
         self._fitted = True
+        self._tested = False  # if the model is refitted, it needs to be re-tested
         self._results = pd.DataFrame(self.searcher.cv_results_)
 
     @property
@@ -38,7 +39,6 @@ class SearchSession:
 
     def report_best(self):
         if not self._fitted:
-            print("searcher not fitted yet")
             self.fit()
 
         print(
@@ -52,14 +52,12 @@ class SearchSession:
 
     def report_result(self):
         if not self._fitted:
-            print("searcher not fitted yet")
             self.fit()
 
         print_search_result(self._results, n=-1)
 
     def test(self):
         if not self._fitted:
-            print("searcher not fitted yet")
             self.fit()
 
         self.searcher.best_estimator_.fit(self.dataset.train.X, self.dataset.train.y)  # refitting might be redundant
@@ -67,12 +65,12 @@ class SearchSession:
         y_true = self.dataset.test.y
         y_pred = self.searcher.best_estimator_.predict(self.dataset.test.X)
         self._acc = accuracy_score(y_true, y_pred)
-        self._pre, self._rec, self._f1, self._supp = precision_recall_fscore_support(y_true, y_pred, average="macro")
+        self._pre, self._rec, self._f1, self._supp = precision_recall_fscore_support(y_true, y_pred, average="micro")
+        self._tested = True
 
     @property
     def acc(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._acc
@@ -80,7 +78,6 @@ class SearchSession:
     @property
     def pre(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._pre
@@ -88,7 +85,6 @@ class SearchSession:
     @property
     def rec(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._rec
@@ -96,7 +92,6 @@ class SearchSession:
     @property
     def f1(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._f1
@@ -104,7 +99,6 @@ class SearchSession:
     @property
     def supp(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._supp
@@ -112,7 +106,6 @@ class SearchSession:
     @property
     def test_result(self):
         if not self.tested:
-            print("searcher not tested yet")
             self.test()
 
         return {
