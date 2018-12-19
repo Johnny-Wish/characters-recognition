@@ -30,10 +30,13 @@ class JsonMetricQueueWriter:
     def jsons(self):
         return self._jsons
 
-    def __add__(self, other):
+    def extend(self, other):
         self._jsons.extend(
-            [json.dumps({"metric": self.metric, "value": it, "step": index}) for index, it in enumerate(other)]
+            [json.dumps({"metric": self.metric, "value": it, "step": idx+len(self)}) for idx, it in enumerate(other)]
         )
+
+    def __len__(self):
+        return len(self._jsons)
 
     def __iter__(self):
         return self._jsons
