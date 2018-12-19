@@ -69,7 +69,7 @@ class Subset:
         if isinstance(size, (int, np.integer)):
             sample = min(total, size)
         else:
-            sample = int(total * size)
+            sample = int(total * min(size, 1.0))
         index = np.random.choice(np.arange(total), sample, replace=False)
         return Subset(self._X[index], self._y[index])
 
