@@ -6,7 +6,7 @@ from preprocess import Dataset, Subset
 class TestSubset(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestSubset, self).__init__(*args, **kwargs)
-        self.n_samples = 100
+        self.n_samples = 1000
         self.n_dim = 15
         X = np.random.rand(self.n_samples, self.n_dim)
         y = np.random.rand(self.n_samples)
@@ -54,11 +54,20 @@ class TestSubset(unittest.TestCase):
                 np.random.rand(self.n_samples)
             )
 
+    def test_sampled(self):
+        self.assertEqual(len(self.subset.sampled(1.0)), self.n_samples)
+        self.assertEqual(len(self.subset.sampled(0.5)), int(self.n_samples * 0.5))
+        self.assertEqual(len(self.subset.sampled(0.333)), int(self.n_samples * 0.333))
+        another_ratio = np.random.rand(1)
+        self.assertEqual(len(self.subset.sampled(another_ratio)), int(self.n_samples * another_ratio))
+
 
 class TestDataset(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestDataset, self).__init__(*args, **kwargs)
         self.dataset = Dataset(folder="../dataset", label_order="shift")
+        self.n_train = len(self.dataset.train)
+        self.n_test = len(self.dataset.test)
 
     def test_sample_size(self):
         self.assertEqual(self.dataset.train.X.shape[0], self.dataset.train.y.shape[0])
@@ -75,3 +84,16 @@ class TestDataset(unittest.TestCase):
         self.assertIsInstance(self.dataset.train.y, np.ndarray)
         self.assertIsInstance(self.dataset.test.X, np.ndarray)
         self.assertIsInstance(self.dataset.test.y, np.ndarray)
+
+    def test_sample_train(self):
+        self.dataset.sample_train(0.5)
+        self.assertEqual(len(self.dataset.train), int(self.n_train * 0.5))
+
+        self.dataset.sample_test(0.3)
+        self.assertEqual(len(self.dataset.test), int(self.n_test * 0.3))
+
+        self.dataset.sample_train(0.2)
+        self.assertEqual(len(self.dataset.train), int(self.n_train * 0.2))
+
+        self.dataset.sample_test(1.0)
+        self.assertEqual(len(self.dataset.test), self.n_test)
