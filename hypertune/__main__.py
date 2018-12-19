@@ -25,6 +25,7 @@ if __name__ == '__main__':
     dataset = Dataset(opt.datafile, opt.dataroot).sample_train(opt.train_rate).sample_test(opt.test_rate)
     importer = ReflexiveImporter(opt.module, opt.package, opt.model, opt.param)
     session = SearchSession(importer.model, importer.param_dist, dataset, opt.n_iter, opt.cv)
+    session.report_args()
 
     # tune (search for) hyper-parameters
     session.fit()
