@@ -39,7 +39,6 @@ class SearchSession:
 
     def report_best(self):
         if not self._fitted:
-            print("searcher not fitted yet")
             self.fit()
 
         print(
@@ -53,14 +52,12 @@ class SearchSession:
 
     def report_result(self):
         if not self._fitted:
-            print("searcher not fitted yet")
             self.fit()
 
         print_search_result(self._results, n=-1)
 
     def test(self):
         if not self._fitted:
-            print("searcher not fitted yet")
             self.fit()
 
         self.searcher.best_estimator_.fit(self.dataset.train.X, self.dataset.train.y)  # refitting might be redundant
@@ -74,7 +71,6 @@ class SearchSession:
     @property
     def acc(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._acc
@@ -82,7 +78,6 @@ class SearchSession:
     @property
     def pre(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._pre
@@ -90,7 +85,6 @@ class SearchSession:
     @property
     def rec(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._rec
@@ -98,7 +92,6 @@ class SearchSession:
     @property
     def f1(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._f1
@@ -106,7 +99,6 @@ class SearchSession:
     @property
     def supp(self):
         if not self._tested:
-            print("searcher not tested yet")
             self.test()
 
         return self._supp
@@ -114,7 +106,6 @@ class SearchSession:
     @property
     def test_result(self):
         if not self.tested:
-            print("searcher not tested yet")
             self.test()
 
         return {
