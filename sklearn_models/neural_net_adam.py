@@ -4,7 +4,7 @@ from neural_net_config import sizes, random_seed as seed
 model = MLPClassifier()
 parameter_distribution = {
     "hidden_layer_sizes": sizes,
-    "activation": ["logistic", "tanh", "relu"],
+    "activation": ["logistic", "relu"],
     "solver": ["adam"],
     "alpha": [0, 1e-4, 1e-3, 1e-2],
     "learning_rate_init": [1e-4, 1e-3, 1e-2],
