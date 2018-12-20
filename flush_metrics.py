@@ -18,8 +18,8 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", default="/results/search-results.pkl")
-    parser.add_argument("--interval", default=0.2, type=float)
+    parser.add_argument("--path", default="/results/search-results.pkl", help="path to load metrics in .pkl format")
+    parser.add_argument("--interval", default=0.2, type=float, help="time interval (in secs) between two flushes")
     opt = parser.parse_args()
 
     with open(opt.path, "rb") as f:
