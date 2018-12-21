@@ -4,11 +4,22 @@ import time
 
 
 def dump(obj, dest):
+    """
+    a trvial tool for dumping object on disk
+    :param obj: object to be dumped
+    :param dest: dump path
+    :return: None
+    """
     with open(dest, "wb") as f:
         pkl.dump(obj, f)
 
 
 def load(src):
+    """
+    a trivial tool for loading object on disk
+    :param src: path to dumped object
+    :return: an object
+    """
     with open(src, "rb") as f:
         obj = pkl.load(f)
     return obj
