@@ -52,9 +52,15 @@ class JsonMetricQueueWriter:
         return self._jsons
 
     def extend(self, other):
+        """
+        extend the list of jsons with `other`
+        :param other: a finite iterable
+        :return: self
+        """
         self._jsons.extend(
             [json.dumps({"metric": self.metric, "value": it, "step": idx+len(self)}) for idx, it in enumerate(other)]
         )
+        return self
 
     def __len__(self):
         return len(self._jsons)
