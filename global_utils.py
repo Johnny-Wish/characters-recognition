@@ -27,6 +27,12 @@ def load(src):
 
 class JsonMetricQueueWriter:
     def __init__(self, metric, itr, time_interval=0):
+        """
+        a writer for metrics that flushes metrics, along with steps, in json format
+        :param metric: str, name of the metric
+        :param itr: a finite iterable of metric values
+        :param time_interval: time interval between two flushes, in secs
+        """
         self.metric = metric
         self._jsons = [json.dumps({"metric": self.metric, "value": it, "step": index}) for index, it in enumerate(itr)]
         self.time_interval = time_interval
