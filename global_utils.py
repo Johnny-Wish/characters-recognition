@@ -38,6 +38,10 @@ class JsonMetricQueueWriter:
         self.time_interval = time_interval
 
     def write(self, ):
+        """
+        flushes the metrics to stdout in .json format
+        :return: None
+        """
         for json in self._jsons:
             print(json)
             if self.time_interval > 0:
