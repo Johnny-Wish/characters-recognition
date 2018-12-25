@@ -18,22 +18,15 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class Subset:
-    def __init__(self, X=None, y=None, encoder=None):
+    def __init__(self, X, y, encoder=None, batch_size=1024):
         """
         An object simulating the training set / testing test / validation set of a super dataset
         :param X: A 2-dim sequence, n_samples x n_feature_dims
         :param y: A 1-dim/2-dim sequence, n_samples or n_samples x 1
         :param encoder: a fitted LabelEncoder instance or a callable that returns an encoded label vector
         """
-        if X is None:
-            self._X = []
-        else:
-            self._X = X
-
-        if y is None:
-            self._y = []
-        else:
-            self._y = y
+        self._X = X
+        self._y = y
 
         if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
             self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
