@@ -11,7 +11,7 @@ class BaseModel(object):
         pass
 
     @abstractmethod
-    def get_model_vars(self, session, init=False):
+    def get_model_vars(self, session):
         return {}
 
     @abstractmethod
@@ -19,9 +19,8 @@ class BaseModel(object):
         pass
 
     @abstractmethod
-    def save_model_vars(self, path: str, session, init=False):
+    def save_model_vars(self, path: str, session):
         pass
-
 
     @abstractmethod
     def _create_loss(self, *args):
