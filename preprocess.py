@@ -18,22 +18,15 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class Subset:
-    def __init__(self, X=None, y=None, encoder=None):
+    def __init__(self, X, y, feature_shape=(-1,), encoder=None, batch_size=1024):
         """
         An object simulating the training set / testing test / validation set of a super dataset
-        :param X: A 2-dim sequence, n_samples x n_feature_dims
-        :param y: A 1-dim/2-dim sequence, n_samples or n_samples x 1
+        :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
+        :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
         :param encoder: a fitted LabelEncoder instance or a callable that returns an encoded label vector
         """
-        if X is None:
-            self._X = []
-        else:
-            self._X = X
-
-        if y is None:
-            self._y = []
-        else:
-            self._y = y
+        self._X = np.reshape(X, (len(X), *feature_shape))
+        self._y = y
 
         if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
             self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
@@ -45,6 +38,24 @@ class Subset:
             self._y = encoder(self._y)
 
         assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
+        from tensorflow.data import Dataset as TFDataset
+        tf_dataset = TFDataset.from_tensor_slices((self._X, self._y)).batch(batch_size, drop_remainder=True)
+        iterator = tf_dataset.make_initializable_iterator()
+        self._next = iterator.get_next()
+        self._init_op = iterator.initializer
+        self._n_batches = len(self) // batch_size
+
+    @property
+    def n_batches(self):
+        return self._n_batches
+
+    @property
+    def next(self):
+        return self._next
+
+    @property
+    def init_op(self):
+        return self._init_op
 
     @property
     def X(self):
