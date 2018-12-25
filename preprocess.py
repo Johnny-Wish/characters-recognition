@@ -18,14 +18,14 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class Subset:
-    def __init__(self, X, y, encoder=None, batch_size=1024):
+    def __init__(self, X, y, feature_shape=(-1,), encoder=None, batch_size=1024):
         """
         An object simulating the training set / testing test / validation set of a super dataset
-        :param X: A 2-dim sequence, n_samples x n_feature_dims
-        :param y: A 1-dim/2-dim sequence, n_samples or n_samples x 1
+        :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
+        :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
         :param encoder: a fitted LabelEncoder instance or a callable that returns an encoded label vector
         """
-        self._X = X
+        self._X = np.reshape(X, (len(X), *feature_shape))
         self._y = y
 
         if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
