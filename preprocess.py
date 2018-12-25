@@ -121,13 +121,13 @@ class Dataset:
         self._test_size = len(self._test)
         self._mapping = mapping
 
-    def sample_train(self, ratio=0.1):
-        self._sampled_train = self._train.sampled(ratio)
+    def sample_train(self, size=0.1):
+        self._sampled_train = self._train.sampled(size)
         self._train_size = len(self._sampled_train)
         return self
 
-    def sample_test(self, ratio=0.1):
-        self._sampled_test = self._test.sampled(ratio)
+    def sample_test(self, size=0.1):
+        self._sampled_test = self._test.sampled(size)
         self._test_size = len(self._sampled_test)
         return self
 
