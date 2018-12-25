@@ -20,7 +20,7 @@ from sklearn.preprocessing import LabelEncoder
 class Subset:
     def __init__(self, X=None, y=None, encoder=None):
         """
-        A object simulating the training set / testing test / validation set of a super dataset
+        An object simulating the training set / testing test / validation set of a super dataset
         :param X: A 2-dim sequence, n_samples x n_feature_dims
         :param y: A 1-dim/2-dim sequence, n_samples or n_samples x 1
         :param encoder: a fitted LabelEncoder instance or a callable that returns an encoded label vector
@@ -65,6 +65,14 @@ class Subset:
         )
 
     def sampled(self, size=1.0):
+        """
+        return a new Subset instance which is contained in `self`
+        :param size: float or int, size of the new instance
+            if float. construed as the ratio to the original instance
+            if size, construed as the number of elements in the returned instance
+            size of new instance will be ceiled if it exceeds the maximum
+        :return: a new Subset instance
+        """
         total = len(self)
         if isinstance(size, (int, np.integer)):
             sample = min(total, size)
@@ -82,6 +90,12 @@ class Subset:
 
 class Dataset:
     def __init__(self, filename="emnist-byclass.mat", folder="dataset", label_order=None):
+        """
+        An object representing a dataset, consisting of training set and testing set
+        :param filename: name of the .mat file, including extensions
+        :param folder: path to the folder containing data files
+        :param label_order: "shift", "reorder" or None, whether and how to treat label orders
+        """
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
