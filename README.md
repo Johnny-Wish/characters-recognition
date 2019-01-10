@@ -51,3 +51,6 @@ Although the deadline is May 2019, the project is such a trivial task that I pla
 
 Hypertuning interface finished and tested, using 1% of the training data and 3% of testing data, best F1 score at 72.5%. Check out the [logs](https://www.floydhub.com/wish1104/projects/character-recognition/7), [dumped results](https://www.floydhub.com/wish1104/projects/character-recognition/7/output), and [metric graphs](https://www.floydhub.com/wish1104/projects/character-recognition/12).
 
+### Update on Jan 10, 2019
+
+I have been trying to implement the model in TensorFlow, the API of which is a mess. Check out the `feature/tf` branch for more details. Now, I am rethinking about my choice of framework and implementing models using PyTorch instead.
