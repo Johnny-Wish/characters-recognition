@@ -4,3 +4,4 @@ dataset/
 *pyc
 test/.cache
 *floyd*
+.cache
