@@ -14,28 +14,32 @@ This file contains pre-processing tools of the dataset, assumed to be of a stand
 import os
 import numpy as np
 from scipy.io import loadmat
-from sklearn.preprocessing import LabelEncoder
+
+
+class Reshape:
+    def __init__(self, *new_shape):
+        self.shape = new_shape
+
+    def __call__(self, array: np.ndarray):
+        return array.reshape(*self.shape)
 
 
 class Subset:
-    def __init__(self, X, y, feature_shape=(-1,), encoder=None):
+    # TODO consider transforming X and y before calling __getitem__()
+    def __init__(self, X, y, transformer=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
         :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
         :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
-        :param encoder: a fitted LabelEncoder instance or a callable that returns an encoded label vector
+        :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
-        self._X = np.reshape(X, (len(X), *feature_shape))
+        self._X = X
         self._y = y
 
         if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
             self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
 
-        # if an encoder is given, encode labels accordingly
-        if isinstance(encoder, LabelEncoder):
-            self._y = encoder.transform(self._y)
-        elif callable(encoder):
-            self._y = encoder(self._y)
+        self.transformer = transformer
 
         assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
 
@@ -79,17 +83,17 @@ class Subset:
 
     def __getitem__(self, item):
         assert 0 <= item < len(self)
-        return {
-            "X": self._X[item],
-            "y": self._y[item],
-        }
+        if self.transformer is None:
+            return {"X": self._X[item], "y": self._y[item]}
+        else:
+            return {"X": self.transformer(self._X[item]), "y": self._y[item]}
 
     def __repr__(self):
         return "<Subset: X={}, y={}>".format(self._X, self._y)
 
 
 class Dataset:
-    def __init__(self, filename="emnist-byclass.mat", folder="dataset", label_order=None):
+    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None):
         """
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
@@ -100,23 +104,10 @@ class Dataset:
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
 
-        if label_order == "shift":
-            lower_bound = min(np.min(train[1]), np.min(test[1]))
-            self._encoder = lambda old: old - lower_bound
-            self._decoder = lambda new: new + lower_bound
-        elif label_order == "reorder":
-            self._encoder = LabelEncoder().fit(train[1])
-            self._decoder = self._encoder
-        else:
-            if label_order is not None:
-                print("unrecognized label order {}".format(label_order))
-            self._encoder = None
-            self._decoder = None
-
-        self._train = Subset(X=train[0], y=train[1], encoder=self._encoder)
+        self._train = Subset(X=train[0], y=train[1], transformer=transformer)
         self._sampled_train = self._train
         self._train_size = len(self._train)
-        self._test = Subset(X=test[0], y=test[1], encoder=self._encoder)
+        self._test = Subset(X=test[0], y=test[1], transformer=transformer)
         self._sampled_test = self._test
         self._test_size = len(self._test)
         self._mapping = mapping
@@ -143,14 +134,6 @@ class Dataset:
     @property
     def test_size(self):
         return self._test_size
-
-    @property
-    def encoder(self):
-        return self._encoder
-
-    @property
-    def decoder(self):
-        return self._decoder
 
     @property
     def train(self):
