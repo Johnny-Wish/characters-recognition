@@ -4,6 +4,7 @@ from torch.utils.model_zoo import load_url
 
 
 class AlexNet(nn.Module):
+    """an alexnet model with 1 or 3 input channels, which returns prediction logits (instead of probs)"""
     def __init__(self, num_channels=3, num_classes=1000):
         super(AlexNet, self).__init__()
         assert num_channels in [1, 3], "illegal input channels={}, must be either 1 or 3".format(num_channels)
