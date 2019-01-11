@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class Subset:
-    def __init__(self, X, y, feature_shape=(-1,), encoder=None, batch_size=1024):
+    def __init__(self, X, y, feature_shape=(-1,), encoder=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
         :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
@@ -38,24 +38,6 @@ class Subset:
             self._y = encoder(self._y)
 
         assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
-        from tensorflow.data import Dataset as TFDataset
-        tf_dataset = TFDataset.from_tensor_slices((self._X, self._y)).batch(batch_size, drop_remainder=True)
-        iterator = tf_dataset.make_initializable_iterator()
-        self._next = iterator.get_next()
-        self._init_op = iterator.initializer
-        self._n_batches = len(self) // batch_size
-
-    @property
-    def n_batches(self):
-        return self._n_batches
-
-    @property
-    def next(self):
-        return self._next
-
-    @property
-    def init_op(self):
-        return self._init_op
 
     @property
     def X(self):
