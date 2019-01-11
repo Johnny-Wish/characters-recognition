@@ -120,6 +120,7 @@ class Dataset:
         self._sampled_test = self._test
         self._test_size = len(self._test)
         self._mapping = mapping
+        self._num_classes = len(np.unique(self.train.y))
 
     def sample_train(self, size=0.1):
         self._sampled_train = self._train.sampled(size)
@@ -130,6 +131,10 @@ class Dataset:
         self._sampled_test = self._test.sampled(size)
         self._test_size = len(self._sampled_test)
         return self
+
+    @property
+    def num_classes(self):
+        return self._num_classes
 
     @property
     def train_size(self):
