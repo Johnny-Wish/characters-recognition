@@ -1,3 +1,5 @@
+pytorch_models/output
+output/
 runs/
 dataset.zip
 dataset/
