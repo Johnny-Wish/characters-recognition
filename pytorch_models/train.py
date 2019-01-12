@@ -72,6 +72,7 @@ if __name__ == '__main__':
     parser.add_argument("--report_period", default=30, type=int)
     parser.add_argument("--max_steps", default=1500, type=int)
     parser.add_argument("--cuda", action="store_true")
+    parser.add_argument("--output", default="/output", type=str)
     parser.add_argument("--pretrained", default=None)
     opt = parser.parse_args()
     print(opt)
@@ -103,3 +104,5 @@ if __name__ == '__main__':
     )
 
     session.epoch()
+    dump_path = os.path.join(opt.output, "{}-{}-step.pth".format(session.model.__class__.__name__, session.global_step))
+    torch.save(session.model.state_dict(), dump_path)
