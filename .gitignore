@@ -1,6 +1,10 @@
+pytorch_models/output
+output/
+runs/
 dataset.zip
 dataset/
 .idea/
 *pyc
 test/.cache
 *floyd*
+.cache

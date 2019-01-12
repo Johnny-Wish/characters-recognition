@@ -1,5 +1,5 @@
 """
-Created:   Dec 25, 2018
+Created:   Jan 10, 2019
 E*ncoding:  UTF-8
 Author:    Shuheng Liu
 Contact:   wish1104@outlook.com
@@ -8,17 +8,5 @@ GitHub:    https://github.com/Johnny-Wish
 (c) All Rights Reserved
 License: https://choosealicense.com/licenses/gpl-3.0/
 
-This package contains tensorflow model objects
+This is a package for pytorch implementation of image classifiers.
 """
-
-
-from .layers import max_pool, lrn, fc, dropout, conv
-
-
-__all__ = [
-    max_pool,
-    lrn,
-    fc,
-    dropout,
-    conv,
-]
