@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torchvision.models.alexnet import model_urls
 from torch.utils.model_zoo import load_url
@@ -40,14 +41,18 @@ class AlexNet(nn.Module):
         return x
 
 
-def get_alexnet(num_channels=3, num_classes=1000, pretrained=True):
+def get_alexnet(num_channels=3, num_classes=1000, pretrained=True, pretrained_path=None):
     model = AlexNet(num_channels=num_channels, num_classes=num_classes)
 
     if pretrained:
-        pretrained_dict = load_url(model_urls['alexnet'])
+        if pretrained_path is None:
+            pretrained_dict = load_url(model_urls['alexnet'])
+        else:
+            pretrained_dict = torch.load(pretrained_path)
         if num_channels == 1:
             pretrained_dict["features.0.weight"] = pretrained_dict["features.0.weight"].sum(dim=1, keepdim=True)
-        if num_classes < 1000:  # The output layer is subject to major changes for different tasks
+        pretrained_num_classes = len(pretrained_dict["classifier.6.weight"])
+        if num_classes < pretrained_num_classes:  # The output layer is subject to changes for different tasks
             pretrained_dict["classifier.6.weight"] = pretrained_dict["classifier.6.weight"][:num_classes]
             pretrained_dict["classifier.6.bias"] = pretrained_dict["classifier.6.bias"][:num_classes]
         model.load_state_dict(pretrained_dict)

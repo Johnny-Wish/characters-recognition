@@ -72,6 +72,7 @@ if __name__ == '__main__':
     parser.add_argument("--report_period", default=30, type=int)
     parser.add_argument("--max_steps", default=1500, type=int)
     parser.add_argument("--cuda", action="store_true")
+    parser.add_argument("--pretrained", default=None)
     opt = parser.parse_args()
     print(opt)
     device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
