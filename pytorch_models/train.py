@@ -34,7 +34,7 @@ class TrainingSession:
     def epoch(self, ignore_max_steps=False):
         for samples_batch in self.loader:
             # report metrics only if the current period ends
-            to_report = (self._global_step % self.report_period == 0)
+            to_report = ((self._global_step + 1) % self.report_period == 0)
             if not self.step(samples_batch, report=to_report, ignore_max_steps=ignore_max_steps):
                 break
 
