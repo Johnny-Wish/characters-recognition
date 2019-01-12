@@ -51,10 +51,16 @@ class TrainingSession:
         logits = self.model(features)
         loss = F.cross_entropy(logits, labels)
 
-        if report:  # report the metrics in this step
+        if report or self.writer:  # calculate the accuracy, and possibly other metrics in the future
             with torch.no_grad():
                 acc = (logits.max(1)[1] == labels).float().mean()
-            print("step {}, loss = {}, accuracy = {}".format(self._global_step, loss, acc))
+
+            if self.writer:  # flush summaries of metrics to disk
+                self.writer.add_scalar("cross-entropy", loss, self._global_step)
+                self.writer.add_scalar("accuracy", acc, self._global_step)
+
+            if report:  # report the metrics
+                print("step {}, loss = {}, accuracy = {}".format(self._global_step, loss, acc))
 
         # zero the gradient, backprop through the net, and do optimization step
         self.optimizer.zero_grad()
