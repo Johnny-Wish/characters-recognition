@@ -29,17 +29,16 @@ class TrainingSession:
 
     def epoch(self, ignore_max_steps=False):
         for samples_batch in self.loader:
-            # increase global step count by 1
-            self._global_step += 1
             # report metrics only if the current period ends
             to_report = (self._global_step % self.report_period == 0)
             if not self.step(samples_batch, report=to_report, ignore_max_steps=ignore_max_steps):
                 break
 
     def step(self, samples_batch, report=True, ignore_max_steps=False):
-        if (not ignore_max_steps) and self._global_step > self.max_steps:
+        if (not ignore_max_steps) and self._global_step >= self.max_steps:
             print("max_step = {} reached".format(self.max_steps))
             return False
+        self._global_step += 1
 
         # split the features and labels
         features = samples_batch['X'].double().to(device)
