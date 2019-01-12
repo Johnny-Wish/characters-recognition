@@ -14,7 +14,7 @@ In the meanwhile, I would like to set up this project in a docker container in t
 
 ### Environment Setup
 
-1. Kindly install Python 3.6 and the latest versions of `scikit-learn` and `tensorflow`
+1. Kindly install Python 3.6 and the latest versions of `scikit-learn` , `PyTorch`, `tensorboard`, and `tensorboardX`
 2. Clone the repository to your local machine.
 3. Download the 700 MiB dataset [here](http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip) and unzip it.
 4. Rename the unzipped folder to `dataset` and move it under the parent directory of this project.
@@ -51,3 +51,10 @@ Although the deadline is May 2019, the project is such a trivial task that I pla
 
 Hypertuning interface finished and tested, using 1% of the training data and 3% of testing data, best F1 score at 72.5%. Check out the [logs](https://www.floydhub.com/wish1104/projects/character-recognition/7), [dumped results](https://www.floydhub.com/wish1104/projects/character-recognition/7/output), and [metric graphs](https://www.floydhub.com/wish1104/projects/character-recognition/12).
 
+### Update on Jan 10, 2019
+
+I have been trying to implement the model in TensorFlow, the API of which is a mess. Check out the `feature/tf` branch for more details. Now, I am rethinking about my choice of framework and implementing models using PyTorch instead.
+
+### Update on Jan 12, 2019
+
+With a custom architected AlexNet model, the latest classification accuracy on 62-label dataset has improved to over 80%, F-score unknown.
