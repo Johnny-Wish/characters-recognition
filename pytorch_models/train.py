@@ -83,6 +83,7 @@ if __name__ == '__main__':
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--output", default="/output", type=str)
     parser.add_argument("--pretrained", default=None)
+    parser.add_argument("--logdir", default="/output")
     opt = parser.parse_args()
     print(opt)
     device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
@@ -103,6 +104,8 @@ if __name__ == '__main__':
         pretrained_path=opt.pretrained if opt.pretrained else None,
     )
 
+    writer = SummaryWriter(log_dir=opt.logdir)
+
     session = TrainingSession(
         model=model,
         train_set=dataset.train,
@@ -110,6 +113,7 @@ if __name__ == '__main__':
         device=device,
         max_steps=opt.max_steps,
         report_period=opt.report_period,
+        summary_writer=writer,
     )
 
     session.epoch()
