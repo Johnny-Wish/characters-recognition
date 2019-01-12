@@ -54,3 +54,7 @@ Hypertuning interface finished and tested, using 1% of the training data and 3% 
 ### Update on Jan 10, 2019
 
 I have been trying to implement the model in TensorFlow, the API of which is a mess. Check out the `feature/tf` branch for more details. Now, I am rethinking about my choice of framework and implementing models using PyTorch instead.
+
+### Update on Jan 12, 2019
+
+With a custom architected AlexNet model, the latest classification accuracy on 62-label dataset has improved to over 80%, F-score unknown.
