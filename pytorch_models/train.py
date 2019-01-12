@@ -103,6 +103,7 @@ if __name__ == '__main__':
     parser.add_argument("--folder", default="../dataset")
     parser.add_argument("--batch", default=512, type=int)
     parser.add_argument("--report_period", default=30, type=int)
+    parser.add_argument("--param_summarize_period", default=25, type=int)
     parser.add_argument("--max_steps", default=1500, type=int)
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--output", default="/output", type=str)
@@ -137,6 +138,7 @@ if __name__ == '__main__':
         device=device,
         max_steps=opt.max_steps,
         report_period=opt.report_period,
+        param_summarize_period=opt.param_summarize_period,
         summary_writer=writer,
     )
 
