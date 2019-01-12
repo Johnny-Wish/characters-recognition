@@ -20,11 +20,12 @@ from tensorboardX import SummaryWriter
 
 
 class TrainingSession:
-    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim_cls=Adam, report_period=1,
-                 summary_writer: SummaryWriter = None):
+    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim_cls=Adam,
+                 report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
         self.report_period = report_period
+        self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
         self.optimizer = optim_cls(self.model.parameters())
         self.device = device
@@ -37,6 +38,8 @@ class TrainingSession:
             to_report = ((self._global_step + 1) % self.report_period == 0)
             if not self.step(samples_batch, report=to_report, ignore_max_steps=ignore_max_steps):
                 break
+            if self._global_step % self.param_summarize_period == 0:
+                self.summarize_parameters()
 
     def step(self, samples_batch, report=True, ignore_max_steps=False):
         if (not ignore_max_steps) and self._global_step >= self.max_steps:
