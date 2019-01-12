@@ -84,6 +84,13 @@ class TrainingSession:
         for key in d:
             self.writer.add_scalar(key, d[key], self._global_step)
 
+    def summarize_parameters(self):
+        if self.writer is None:
+            return
+        state_dict = self.model.state_dict()
+        for param in state_dict:
+            self.writer.add_histogram(param, state_dict[param], global_step=self.global_step)
+
     def report_metrics(self, d: dict):
         write_json_metrics(d, step=self.global_step)
 
