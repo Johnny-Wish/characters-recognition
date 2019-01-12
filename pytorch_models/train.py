@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize
 from torch.optim import Adam
 from preprocess import Dataset, Reshape
+from global_utils import write_json_metrics
 from tensorboardX import SummaryWriter
 
 
@@ -55,12 +56,17 @@ class TrainingSession:
             with torch.no_grad():
                 acc = (logits.max(1)[1] == labels).float().mean()
 
+            # torch.Tensor are not serializable, therefore casting metrics to built-in python classes
+            metrics = {
+                "train_loss": float(loss),
+                "train_accuracy": float(acc),
+            }
+
             if self.writer:  # flush summaries of metrics to disk
-                self.writer.add_scalar("cross-entropy", loss, self._global_step)
-                self.writer.add_scalar("accuracy", acc, self._global_step)
+                self.summarize_metrics(metrics)
 
             if report:  # report the metrics
-                print("step {}, loss = {}, accuracy = {}".format(self._global_step, loss, acc))
+                self.report_metrics(metrics)
 
         # zero the gradient, backprop through the net, and do optimization step
         self.optimizer.zero_grad()
@@ -72,6 +78,13 @@ class TrainingSession:
     @property
     def global_step(self):
         return self._global_step
+
+    def summarize_metrics(self, d: dict):
+        for key in d:
+            self.writer.add_scalar(key, d[key], self._global_step)
+
+    def report_metrics(self, d: dict):
+        write_json_metrics(d, step=self.global_step)
 
 
 if __name__ == '__main__':
