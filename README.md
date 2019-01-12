@@ -43,7 +43,7 @@ All classes (except for essentially trivial ones) are equipped with respective u
 
 In particular, the `temp` package is used only for testing purposes of reflexive import (see `hypertune/reflexive_import.py` and `test/test_relfexive_import.py`). No modification should be made to this package.
 
-## ETA
+## ETA and Updates
 
 Although the deadline is May 2019, the project is such a trivial task that I plan on finishing it within a few days. However, due to the number of final examinations I have in future weeks, there might be some delay. 
 
@@ -58,3 +58,7 @@ I have been trying to implement the model in TensorFlow, the API of which is a m
 ### Update on Jan 12, 2019
 
 With a custom architected AlexNet model, the latest classification accuracy on 62-label dataset has improved to over 80%, F-score unknown.
+
+### Update on Jan 13, 2019
+
+A TensorboardX visualization tool is added for metric and parameter visualization. It seems the pre-trained convolution layers of alexnet is not updated at all. This is possibly due to gradient vanishment, but more likely, the fact that pretrained parameters are already good enough at capturing image features.
