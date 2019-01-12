@@ -15,16 +15,19 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize
 from torch.optim import Adam
 from preprocess import Dataset, Reshape
+from tensorboardX import SummaryWriter
 
 
 class TrainingSession:
-    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim_cls=Adam, report_period=1):
+    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim_cls=Adam, report_period=1,
+                 summary_writer: SummaryWriter = None):
         self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
         self.report_period = report_period
         self.max_steps = max_steps
         self.optimizer = optim_cls(self.model.parameters())
         self.device = device
+        self.writer = summary_writer
         self._global_step = 0
 
     def epoch(self, ignore_max_steps=False):
