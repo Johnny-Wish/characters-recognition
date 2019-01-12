@@ -62,8 +62,7 @@ class TrainingSession:
                 "train_accuracy": float(acc),
             }
 
-            if self.writer:  # flush summaries of metrics to disk
-                self.summarize_metrics(metrics)
+            self.summarize_metrics(metrics)  # flush summaries of metrics to disk
 
             if report:  # report the metrics
                 self.report_metrics(metrics)
@@ -80,6 +79,8 @@ class TrainingSession:
         return self._global_step
 
     def summarize_metrics(self, d: dict):
+        if self.writer is None:
+            return
         for key in d:
             self.writer.add_scalar(key, d[key], self._global_step)
 
