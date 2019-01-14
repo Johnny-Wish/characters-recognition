@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize
 from torch.optim import Adam
 from preprocess import Dataset, Reshape
-from global_utils import write_json_metrics
+from global_utils import flush_json_metrics
 from tensorboardX import SummaryWriter
 
 
@@ -27,7 +27,8 @@ class TrainingSession:
         self.report_period = report_period
         self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
-        self.optimizer = optim_cls(self.model.parameters())
+        # only updates the parameters that require gradients
+        self.optimizer = optim_cls(filter(lambda p: p.requires_grad, self.model.parameters()))
         self.device = device
         self.writer = summary_writer
         self._global_step = 0
@@ -41,7 +42,7 @@ class TrainingSession:
             if self._global_step % self.param_summarize_period == 0:
                 self.summarize_parameters()
 
-    def step(self, samples_batch, report=True, ignore_max_steps=False):
+    def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False):
         if (not ignore_max_steps) and self._global_step >= self.max_steps:
             print("max_step = {} reached".format(self.max_steps))
             return False
@@ -50,6 +51,10 @@ class TrainingSession:
         # split the features and labels
         features = samples_batch['X'].double().to(device)
         labels = samples_batch['y'].long().to(device)
+
+        # only summarize the model (graph) at the first step unless otherwise specified
+        if force_summarize_model or self._global_step == 1:
+            self.summarize_model(features)
 
         # feed forward and calculate cross-entropy loss
         logits = self.model(features)
@@ -90,12 +95,20 @@ class TrainingSession:
     def summarize_parameters(self):
         if self.writer is None:
             return
-        state_dict = self.model.state_dict()
-        for param in state_dict:
-            self.writer.add_histogram(param, state_dict[param], global_step=self.global_step)
+
+        for tag, param in self.model.named_parameters():
+            # summarize a parameter only if it requires gradient
+            if param.requires_grad:
+                self.writer.add_histogram(tag, param, global_step=self.global_step)
+
+    def summarize_model(self, input):
+        if self.writer is None:
+            return
+        # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
+        self.writer.add_graph(self.model, input_to_model=input, verbose=False)
 
     def report_metrics(self, d: dict):
-        write_json_metrics(d, step=self.global_step)
+        flush_json_metrics(d, step=self.global_step)
 
 
 if __name__ == '__main__':
@@ -108,6 +121,7 @@ if __name__ == '__main__':
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--output", default="/output", type=str)
     parser.add_argument("--pretrained", default=None)
+    parser.add_argument("--train_features", action="store_true")
     parser.add_argument("--logdir", default="/output")
     opt = parser.parse_args()
     print(opt)
@@ -127,6 +141,7 @@ if __name__ == '__main__':
         num_classes=dataset.num_classes,
         pretrained=True,
         pretrained_path=opt.pretrained if opt.pretrained else None,
+        train_features=opt.train_features,
     )
 
     writer = SummaryWriter(log_dir=opt.logdir)
