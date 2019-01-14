@@ -121,6 +121,7 @@ if __name__ == '__main__':
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--output", default="/output", type=str)
     parser.add_argument("--pretrained", default=None)
+    parser.add_argument("--train_features", action="store_true")
     parser.add_argument("--logdir", default="/output")
     opt = parser.parse_args()
     print(opt)
@@ -140,6 +141,7 @@ if __name__ == '__main__':
         num_classes=dataset.num_classes,
         pretrained=True,
         pretrained_path=opt.pretrained if opt.pretrained else None,
+        train_features=opt.train_features,
     )
 
     writer = SummaryWriter(log_dir=opt.logdir)
