@@ -27,7 +27,8 @@ class TrainingSession:
         self.report_period = report_period
         self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
-        self.optimizer = optim_cls(self.model.parameters())
+        # only updates the parameters that require gradients
+        self.optimizer = optim_cls(filter(lambda p: p.requires_grad, self.model.parameters()))
         self.device = device
         self.writer = summary_writer
         self._global_step = 0
@@ -90,9 +91,11 @@ class TrainingSession:
     def summarize_parameters(self):
         if self.writer is None:
             return
-        state_dict = self.model.state_dict()
-        for param in state_dict:
-            self.writer.add_histogram(param, state_dict[param], global_step=self.global_step)
+
+        for tag, param in self.model.named_parameters():
+            # summarize a parameter only if it requires gradient
+            if param.requires_grad:
+                self.writer.add_histogram(tag, param, global_step=self.global_step)
 
     def report_metrics(self, d: dict):
         flush_json_metrics(d, step=self.global_step)
