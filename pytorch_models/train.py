@@ -42,7 +42,7 @@ class TrainingSession:
             if self._global_step % self.param_summarize_period == 0:
                 self.summarize_parameters()
 
-    def step(self, samples_batch, report=True, ignore_max_steps=False):
+    def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False):
         if (not ignore_max_steps) and self._global_step >= self.max_steps:
             print("max_step = {} reached".format(self.max_steps))
             return False
@@ -51,6 +51,10 @@ class TrainingSession:
         # split the features and labels
         features = samples_batch['X'].double().to(device)
         labels = samples_batch['y'].long().to(device)
+
+        # only summarize the model (graph) at the first step unless otherwise specified
+        if force_summarize_model or self._global_step == 1:
+            self.summarize_model(features)
 
         # feed forward and calculate cross-entropy loss
         logits = self.model(features)
@@ -96,6 +100,12 @@ class TrainingSession:
             # summarize a parameter only if it requires gradient
             if param.requires_grad:
                 self.writer.add_histogram(tag, param, global_step=self.global_step)
+
+    def summarize_model(self, input):
+        if self.writer is None:
+            return
+        # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
+        self.writer.add_graph(self.model, input_to_model=input, verbose=False)
 
     def report_metrics(self, d: dict):
         flush_json_metrics(d, step=self.global_step)
