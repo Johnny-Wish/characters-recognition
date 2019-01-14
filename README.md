@@ -14,7 +14,7 @@ In the meanwhile, I would like to set up this project in a docker container in t
 
 ### Environment Setup
 
-1. Kindly install Python 3.6 and the latest versions of `scikit-learn` , `PyTorch`, `tensorboard`, and `tensorboardX`
+1. Kindly install Python 3.6 and the latest versions of `scikit-learn` , `PyTorch`, `tensorboard`, and `tensorboardX`. Note that `tensorboardX` must be v1.6 or later for `PyTorch` >= 0.4 
 2. Clone the repository to your local machine.
 3. Download the 700 MiB dataset [here](http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip) and unzip it.
 4. Rename the unzipped folder to `dataset` and move it under the parent directory of this project.
