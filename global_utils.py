@@ -25,7 +25,7 @@ def load(src):
     return obj
 
 
-def write_json_metrics(d: dict, step=None):
+def flush_json_metrics(d: dict, step=None):
     """
     writes json dicts (from a python dict of metrics) to be parsed by FloydHub servers
     :param d: a dict whose keys are metric names, and values are corresponding values

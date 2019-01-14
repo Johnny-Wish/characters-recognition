@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize
 from torch.optim import Adam
 from preprocess import Dataset, Reshape
-from global_utils import write_json_metrics
+from global_utils import flush_json_metrics
 from tensorboardX import SummaryWriter
 
 
@@ -95,7 +95,7 @@ class TrainingSession:
             self.writer.add_histogram(param, state_dict[param], global_step=self.global_step)
 
     def report_metrics(self, d: dict):
-        write_json_metrics(d, step=self.global_step)
+        flush_json_metrics(d, step=self.global_step)
 
 
 if __name__ == '__main__':
