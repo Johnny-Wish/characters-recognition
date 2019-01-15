@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_models.alexnet import get_alexnet
-from pytorch_models.torch_utils import get_metrics_dict, prepend_tag, LossRegister, Checkpointer
+from pytorch_models.torch_utils import get_metrics_dict, prepend_tag, LossRegister, Checkpointer, EmbedModule
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 from torch.optim import Adam, Optimizer
@@ -20,7 +20,7 @@ from tensorboardX import SummaryWriter
 
 
 class TrainingSession(LossRegister, Checkpointer):
-    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim=Adam, checkpoint_path=".",
+    def __init__(self, model: EmbedModule, train_set, batch, device, max_steps, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
