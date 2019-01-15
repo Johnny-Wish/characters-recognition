@@ -20,15 +20,22 @@ from tensorboardX import SummaryWriter
 
 
 class TrainingSession:
-    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim_cls=Adam,
+    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim=Adam,
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
         self.report_period = report_period
         self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
-        # only updates the parameters that require gradients
-        self.optimizer = optim_cls(filter(lambda p: p.requires_grad, self.model.parameters()))
+        if issubclass(optim, Optimizer):
+            # only updates the parameters that require gradients
+            self.optimizer = optim(filter(lambda p: p.requires_grad, self.model.parameters()))
+        elif isinstance(optim, Optimizer):
+            self.optimizer = optim
+        else:
+            print("Abnormal optimizer specified: {}".format(optim))
+            self.optimizer = optim
+
         self.device = device
         self.writer = summary_writer
         self._global_step = 0
