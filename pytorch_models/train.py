@@ -46,7 +46,7 @@ class TrainingSession(LossRegister, Checkpointer):
     def epoch(self, force_report=False, ignore_max_steps=False, checkpoint=False):
         for samples_batch in self.loader:
             # report metrics only if the current period ends
-            to_report = ((self._global_step + 1) % self.report_period == 0)
+            to_report = force_report or ((self._global_step + 1) % self.report_period == 0)
             if not self.step(
                     samples_batch,
                     report=to_report,
