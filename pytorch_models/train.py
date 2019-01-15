@@ -83,7 +83,7 @@ class TrainingSession(LossRegister, Checkpointer):
             with torch.no_grad():
                 predictions = logits.max(1)[1]
                 metrics = get_metrics_dict(labels, predictions)
-                metrics["train_loss"] = float(loss)
+                metrics["loss"] = float(loss)
 
             tagged_metrics = prepend_tag(metrics, "train")
 
