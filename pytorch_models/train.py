@@ -10,10 +10,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_models.alexnet import get_alexnet
-from pytorch_models.torch_utils import ArrayTransform
 from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Resize
-from torch.optim import Adam
+from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
+from torch.optim import Adam, Optimizer
 from preprocess import Dataset, Reshape
 from global_utils import flush_json_metrics
 from tensorboardX import SummaryWriter
@@ -138,8 +137,10 @@ if __name__ == '__main__':
     dataset = Dataset(
         folder=opt.folder,
         transformer=Compose([
-            Reshape(28, 28),
-            ArrayTransform(Resize((227, 227))),
+            Reshape(28, 28, 1),
+            ToPILImage(),
+            Resize((227, 227)),
+            ToTensor(),
         ])
     )
 
