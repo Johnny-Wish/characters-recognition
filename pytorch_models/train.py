@@ -26,14 +26,14 @@ class TrainingSession:
         self.report_period = report_period
         self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
+
         if issubclass(optim, Optimizer):
             # only updates the parameters that require gradients
             self.optimizer = optim(filter(lambda p: p.requires_grad, self.model.parameters()))
         elif isinstance(optim, Optimizer):
             self.optimizer = optim
         else:
-            print("Abnormal optimizer specified: {}".format(optim))
-            self.optimizer = optim
+            self.optimizer = Adam(filter(lambda p: p.requires_grad, self.model.parameters()))
 
         self.device = device
         self.writer = summary_writer
