@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_models.alexnet import get_alexnet
-from pytorch_models.torch_utils import get_metrics_dict, prepend_tag
+from pytorch_models.torch_utils import get_metrics_dict, prepend_tag, LossRegister, Checkpointer
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 from torch.optim import Adam, Optimizer
@@ -19,9 +19,12 @@ from global_utils import flush_json_metrics
 from tensorboardX import SummaryWriter
 
 
-class TrainingSession:
-    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim=Adam,
+class TrainingSession(LossRegister, Checkpointer):
+    def __init__(self, model: nn.Module, train_set, batch, device, max_steps, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
+        LossRegister.__init__(self)
+        Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
+
         self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
         self.report_period = report_period
@@ -40,16 +43,21 @@ class TrainingSession:
         self.writer = summary_writer
         self._global_step = 0
 
-    def epoch(self, ignore_max_steps=False):
+    def epoch(self, force_report=False, ignore_max_steps=False, checkpoint=False):
         for samples_batch in self.loader:
             # report metrics only if the current period ends
             to_report = ((self._global_step + 1) % self.report_period == 0)
-            if not self.step(samples_batch, report=to_report, ignore_max_steps=ignore_max_steps):
+            if not self.step(
+                    samples_batch,
+                    report=to_report,
+                    ignore_max_steps=ignore_max_steps,
+                    checkpoint=checkpoint,
+            ):
                 break
             if self._global_step % self.param_summarize_period == 0:
                 self.summarize_parameters()
 
-    def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False):
+    def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
         if (not ignore_max_steps) and self._global_step >= self.max_steps:
             print("max_step = {} reached".format(self.max_steps))
             return False
@@ -66,6 +74,10 @@ class TrainingSession:
         # feed forward and calculate cross-entropy loss
         logits = self.model(features)
         loss = F.cross_entropy(logits, labels)
+
+        loss_updated = self.update_lowest_loss(loss)
+        if checkpoint and loss_updated:
+            self.checkpoint()
 
         if report or self.writer:  # calculate the accuracy, and possibly other metrics in the future
             with torch.no_grad():
@@ -115,6 +127,12 @@ class TrainingSession:
     def _report_metrics(self, d: dict):
         flush_json_metrics(d, step=self.global_step)
 
+    def checkpoint(self):
+        torch.save(
+            self.model.state_dict(),
+            os.path.join(self._checkpoint_path, "{}.pth".format(self.model.__class__.__name__))
+        )
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -162,6 +180,7 @@ if __name__ == '__main__':
         batch=opt.batch,
         device=device,
         max_steps=opt.max_steps,
+        checkpoint_path=opt.output,
         report_period=opt.report_period,
         param_summarize_period=opt.param_summarize_period,
         summary_writer=writer,
@@ -169,5 +188,3 @@ if __name__ == '__main__':
     print("training session instantiated")
 
     session.epoch()
-    dump_path = os.path.join(opt.output, "{}-{}-step.pth".format(session.model.__class__.__name__, session.global_step))
-    torch.save(session.model.state_dict(), dump_path)
