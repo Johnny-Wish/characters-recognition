@@ -42,3 +42,15 @@ class LossRegister:
     @property
     def lowest_loss(self):
         return self._lowest_loss
+
+
+class Checkpointer:
+    """
+    a base class which has a `checkpoint_path` property, and a `checkpoint` method
+    """
+
+    def __init__(self, checkpoint_path):
+        self._checkpoint_path = checkpoint_path
+
+    def checkpoint(self):
+        pass
