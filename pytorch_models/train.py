@@ -79,6 +79,7 @@ class TrainingSession(LossRegister, Checkpointer):
         loss_updated = self.update_lowest_loss(loss)
         if checkpoint and loss_updated:
             self.checkpoint()
+            self.summarize_embedding(features, labels, step_id="current")
 
         if report or self.writer:  # calculate the accuracy, and possibly other metrics in the future
             with torch.no_grad():
