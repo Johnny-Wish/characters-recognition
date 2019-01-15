@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_models.alexnet import get_alexnet
+from pytorch_models.torch_utils import get_metrics_dict, prepend_tag
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 from torch.optim import Adam, Optimizer
@@ -68,18 +69,16 @@ class TrainingSession:
 
         if report or self.writer:  # calculate the accuracy, and possibly other metrics in the future
             with torch.no_grad():
-                acc = (logits.max(1)[1] == labels).float().mean()
+                predictions = logits.max(1)[1]
+                metrics = get_metrics_dict(labels, predictions)
+                metrics["train_loss"] = float(loss)
 
-            # torch.Tensor are not serializable, therefore casting metrics to built-in python classes
-            metrics = {
-                "train_loss": float(loss),
-                "train_accuracy": float(acc),
-            }
+            tagged_metrics = prepend_tag(metrics, "train")
 
-            self.summarize_metrics(metrics)  # flush summaries of metrics to disk
+            self.summarize_metrics(tagged_metrics)  # write summaries of metrics to disk
 
-            if report:  # report the metrics
-                self.report_metrics(metrics)
+            if report:
+                self.report_metrics(tagged_metrics)
 
         # zero the gradient, backprop through the net, and do optimization step
         self.optimizer.zero_grad()
