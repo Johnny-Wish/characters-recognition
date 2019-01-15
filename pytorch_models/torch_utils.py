@@ -22,3 +22,23 @@ def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
 
 def prepend_tag(metrics: dict, tag, sep="/"):
     return {sep.join([tag, key]): value for key, value in metrics.items()}
+
+
+class LossRegister:
+    """
+    a base class which has a `lowest_loss` property, and a `update_lowest_loss` method
+    """
+
+    def __init__(self):
+        self._lowest_loss = None
+
+    def update_lowest_loss(self, new_loss):
+        if self._lowest_loss is None or new_loss < self._lowest_loss:
+            self._lowest_loss = new_loss
+            return True
+        else:
+            return False
+
+    @property
+    def lowest_loss(self):
+        return self._lowest_loss
