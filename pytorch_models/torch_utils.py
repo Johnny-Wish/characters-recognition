@@ -1,6 +1,15 @@
 import torch
+import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
+
+
+class EmbedModule(nn.Module):
+    def __init__(self):
+        super(EmbedModule, self).__init__()
+
+    def embed(self, input):
+        raise NotImplementedErro
 
 
 def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
