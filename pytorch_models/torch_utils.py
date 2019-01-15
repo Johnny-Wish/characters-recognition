@@ -34,3 +34,6 @@ def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
         "std_support": float(std_support),
     }
 
+
+def prepend_tag(metrics: dict, tag, sep="/"):
+    return {sep.join([tag, key]): value for key, value in metrics.items()}
