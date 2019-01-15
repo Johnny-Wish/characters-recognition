@@ -58,15 +58,19 @@ class TrainingSession(LossRegister, Checkpointer):
             if self._global_step % self.param_summarize_period == 0:
                 self.summarize_parameters()
 
+    def split_features_labels(self, samples_batch):
+        return (
+            samples_batch['X'].double().to(self.device),
+            samples_batch['y'].long().to(self.device),
+        )
+
     def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
         if (not ignore_max_steps) and self._global_step >= self.max_steps:
             print("max_step = {} reached".format(self.max_steps))
             return False
         self._global_step += 1
 
-        # split the features and labels
-        features = samples_batch['X'].double().to(self.device)
-        labels = samples_batch['y'].long().to(self.device)
+        features, labels = self.split_features_labels(samples_batch)
 
         # only summarize the model (graph) at the first step unless otherwise specified
         if force_summarize_model or self._global_step == 1:
