@@ -64,8 +64,8 @@ class TrainingSession(LossRegister, Checkpointer):
         self._global_step += 1
 
         # split the features and labels
-        features = samples_batch['X'].double().to(device)
-        labels = samples_batch['y'].long().to(device)
+        features = samples_batch['X'].double().to(self.device)
+        labels = samples_batch['y'].long().to(self.device)
 
         # only summarize the model (graph) at the first step unless otherwise specified
         if force_summarize_model or self._global_step == 1:
