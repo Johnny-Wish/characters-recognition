@@ -41,11 +41,15 @@ class LossRegister:
     def __init__(self):
         self._lowest_loss = None
 
-    def update_lowest_loss(self, new_loss):
+    def update_lowest_loss(self, new_loss, verbose=True):
         if self._lowest_loss is None or new_loss < self._lowest_loss:
             self._lowest_loss = new_loss
+            if verbose:
+                print("Lowest loss updated to {}".format(self._lowest_loss))
             return True
         else:
+            if verbose:
+                print("Lowest loss remained to {}".format(self._lowest_loss))
             return False
 
     @property
