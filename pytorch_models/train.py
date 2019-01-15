@@ -172,6 +172,7 @@ if __name__ == '__main__':
     parser.add_argument("--pretrained", default=None)
     parser.add_argument("--train_features", action="store_true")
     parser.add_argument("--logdir", default="/output")
+    parser.add_argument("--checkpoint", action="store_true")
     opt = parser.parse_args()
     print(opt)
     device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
@@ -213,4 +214,4 @@ if __name__ == '__main__':
     )
     print("training session instantiated")
 
-    session.epoch()
+    session.epoch(checkpoint=opt.checkpoint)
