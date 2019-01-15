@@ -26,7 +26,7 @@ class Reshape:
 
 class Subset:
     # TODO consider transforming X and y before calling __getitem__()
-    def __init__(self, X, y, transformer=None):
+    def __init__(self, X, y, mapping, transformer=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
         :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
@@ -40,6 +40,7 @@ class Subset:
             self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
 
         self.transformer = transformer
+        self._mapping = mapping
 
         assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
 
@@ -50,6 +51,10 @@ class Subset:
     @property
     def y(self):
         return self._y
+
+    @property
+    def mapping(self):
+        return self._mapping
 
     def __dict__(self):
         return {"X": self._X, "y": self._y}
@@ -104,13 +109,13 @@ class Dataset:
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
 
-        self._train = Subset(X=train[0], y=train[1], transformer=transformer)
+        self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
+        self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
         self._sampled_train = self._train
         self._train_size = len(self._train)
-        self._test = Subset(X=test[0], y=test[1], transformer=transformer)
+        self._test = Subset(X=test[0], y=test[1], mapping=self._mapping, transformer=transformer)
         self._sampled_test = self._test
         self._test_size = len(self._test)
-        self._mapping = mapping
         self._num_classes = len(np.unique(self.train.y))
 
     def sample_train(self, size=0.1):
