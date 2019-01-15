@@ -75,10 +75,10 @@ class TrainingSession:
 
             tagged_metrics = prepend_tag(metrics, "train")
 
-            self.summarize_metrics(tagged_metrics)  # write summaries of metrics to disk
+            self._summarize_metrics(tagged_metrics)  # write summaries of metrics to disk
 
             if report:
-                self.report_metrics(tagged_metrics)
+                self._report_metrics(tagged_metrics)
 
         # zero the gradient, backprop through the net, and do optimization step
         self.optimizer.zero_grad()
@@ -91,7 +91,7 @@ class TrainingSession:
     def global_step(self):
         return self._global_step
 
-    def summarize_metrics(self, d: dict):
+    def _summarize_metrics(self, d: dict):
         if self.writer is None:
             return
         for key in d:
@@ -112,7 +112,7 @@ class TrainingSession:
         # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
         self.writer.add_graph(self.model, input_to_model=input, verbose=False)
 
-    def report_metrics(self, d: dict):
+    def _report_metrics(self, d: dict):
         flush_json_metrics(d, step=self.global_step)
 
 
