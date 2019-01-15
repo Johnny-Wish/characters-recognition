@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 from torchvision.models.alexnet import model_urls
 from torch.utils.model_zoo import load_url
+from pytorch_models.torch_utils import EmbedModule
 
 
-class AlexNet(nn.Module):
+class AlexNet(EmbedModule):
     """an alexnet model with 1 or 3 input channels, which returns prediction logits (instead of probs)"""
 
     def __init__(self, num_channels=3, num_classes=1000):
@@ -40,6 +41,11 @@ class AlexNet(nn.Module):
         x = x.view(x.size(0), 256 * 6 * 6)
         x = self.classifier(x)
         return x
+
+    def embed(self, x):
+        embeddings = self.features(x)
+        flattened_embeddings = embeddings.view(x.size(0), 256 * 6 * 6)
+        return flattened_embeddings
 
 
 def get_alexnet(num_channels=3, num_classes=1000, pretrained=True, pretrained_path=None, train_features=True):
