@@ -25,6 +25,7 @@ class TrainingSession(LossRegister, Checkpointer):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
 
+        self.train_set = train_set
         self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
         self.report_period = report_period
@@ -108,6 +109,31 @@ class TrainingSession(LossRegister, Checkpointer):
             return
         for key in d:
             self.writer.add_scalar(key, d[key], self._global_step)
+
+    def summarize_embedding(self, features, labels, step_id="current"):
+        """
+        write embedding summaries to local disk (if self.writer is not None)
+        :param features: a torch.Tensor instance representing image batch
+        :param labels: a torch.Tensor instance representing label batch
+        :param step_id: int, None, or "current" (default)
+            if None, do not specify global_step in add_embedding
+            if positive int, specify global_step=step_id
+            if "current", specify global_step = current step of training, (i.e., self._global_step)
+        :return: None
+        """
+        if self.writer is None:
+            return
+        if step_id == "current":
+            step_id = self._global_step
+        meta = [self.train_set.mapping[int(label)] for label in labels]
+        embedding = self.model.embed(features)
+        self.writer.add_embedding(
+            embedding,
+            metadata=meta,
+            label_img=features.float(),  # the tensorboardX backend assumes torch.float32 input
+            global_step=step_id,
+            tag="embedding",
+        )
 
     def summarize_parameters(self):
         if self.writer is None:
