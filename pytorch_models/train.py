@@ -143,6 +143,7 @@ if __name__ == '__main__':
             ToTensor(),
         ])
     )
+    print("dataset loaded")
 
     model = get_alexnet(
         num_channels=1,
@@ -151,8 +152,10 @@ if __name__ == '__main__':
         pretrained_path=opt.pretrained if opt.pretrained else None,
         train_features=opt.train_features,
     )
+    print("using model", model)
 
     writer = SummaryWriter(log_dir=opt.logdir)
+    print("logging summaries at", writer.log_dir)
 
     session = TrainingSession(
         model=model,
@@ -164,6 +167,7 @@ if __name__ == '__main__':
         param_summarize_period=opt.param_summarize_period,
         summary_writer=writer,
     )
+    print("training session instantiated")
 
     session.epoch()
     dump_path = os.path.join(opt.output, "{}-{}-step.pth".format(session.model.__class__.__name__, session.global_step))
