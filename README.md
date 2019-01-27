@@ -62,3 +62,7 @@ With a custom architected AlexNet model, the latest classification accuracy on 6
 ### Update on Jan 13, 2019
 
 A TensorboardX visualization tool is added for metric and parameter visualization. It seems the pre-trained convolution layers of alexnet is not updated at all. This is possibly due to gradient vanishment, but more likely, the fact that pretrained parameters are already good enough at capturing image features.
+
+### Update on Jan 27, 2019
+
+A simpler version of CNN, referred to as LeNet has been tested. Performance of this network (85%+ accuracy and F-score) is even better pretrained AlexNet, and the training time is greatly reduced. See [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72), [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72) and [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72) for training logs and outputs.
