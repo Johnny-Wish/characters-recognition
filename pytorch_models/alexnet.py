@@ -11,6 +11,7 @@ class AlexNet(EmbedModule):
     def __init__(self, num_channels=3, num_classes=1000):
         super(AlexNet, self).__init__()
         assert num_channels in [1, 3], "illegal input channels={}, must be either 1 or 3".format(num_channels)
+
         self.features = nn.Sequential(
             nn.Conv2d(num_channels, 64, kernel_size=11, stride=4, padding=2),
             nn.ReLU(inplace=True),
@@ -26,6 +27,7 @@ class AlexNet(EmbedModule):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
         )
+
         self.classifier = nn.Sequential(
             nn.Dropout(),
             nn.Linear(256 * 6 * 6, 4096),
@@ -64,12 +66,11 @@ def get_alexnet(num_channels=3, num_classes=1000, pretrained=True, pretrained_pa
             pretrained_dict["classifier.6.bias"] = pretrained_dict["classifier.6.bias"][:num_classes]
         model.load_state_dict(pretrained_dict)
 
-    if not train_features:
-        if pretrained:
+        if not train_features:
             model.features.requires_grad = False
             for param in model.features.parameters():
                 param.requires_grad = False
-        else:
-            print("The model is assigned random init weights. All layers must be trained")
+    elif not train_features:
+        print("The model is assigned random init weights. All layers must be trained")
 
     return model

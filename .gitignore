@@ -8,3 +8,5 @@ dataset/
 test/.cache
 *floyd*
 .cache
+*ipynb
+.ipynb_checkpoints/
