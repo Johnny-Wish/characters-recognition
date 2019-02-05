@@ -3,7 +3,7 @@ import argparse
 from preprocess import Dataset
 from global_utils import dump, JsonMetricQueueWriter
 from .search_session import SearchSession
-from .reflexive_import import ReflexiveImporter
+from reflexive_import import ReflexiveImporter
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
