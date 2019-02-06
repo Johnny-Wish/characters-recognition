@@ -81,7 +81,7 @@ class Subset:
         else:
             sample = int(total * min(size, 1.0))
         index = np.random.choice(np.arange(total), sample, replace=False)
-        return Subset(self._X[index], self._y[index])
+        return Subset(self._X[index], self._y[index], self._mapping)
 
     def __len__(self):
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
