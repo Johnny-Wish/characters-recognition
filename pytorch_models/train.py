@@ -1,21 +1,13 @@
 import os
-import sys
-
-sub_dir = os.path.dirname(os.path.realpath(__file__))
-root_dir = os.path.split(sub_dir)[0]
-sys.path += [sub_dir, root_dir]
-
 import argparse
 import torch
 import torch.nn.functional as F
-from pytorch_models.alexnet import get_alexnet
-from pytorch_models.lenet import get_lenet
 from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
 from pytorch_models.base_session import ForwardSession, _SummarySession
-from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 from torch.optim import Adam, Optimizer
-from preprocess import Dataset, Reshape
+from preprocess import Dataset
 from tensorboardX import SummaryWriter
+from reflexive_import import ReflexiveImporter
 
 
 class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
@@ -104,6 +96,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder", default="../dataset")
     parser.add_argument("--batch", default=512, type=int)
+    parser.add_argument("--model", default="lenet")
     parser.add_argument("--report_period", default=30, type=int)
     parser.add_argument("--param_summarize_period", default=25, type=int)
     parser.add_argument("--max_steps", default=1500, type=int)
@@ -118,24 +111,24 @@ if __name__ == '__main__':
     device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
     print("using device {}".format(device))
 
-    dataset = Dataset(
-        folder=opt.folder,
-        transformer=Compose([
-            Reshape(28, 28, 1),
-            ToPILImage(),
-            Resize((227, 227)),
-            ToTensor(),
-        ])
+    importer = ReflexiveImporter(
+        module_name=opt.model,
+        var_list=["get_model", "model_args", "model_kwargs", "transformer"],
+        package_name="pytorch_models",
     )
+
+    dataset = Dataset(folder=opt.folder, transformer=importer["transformer"])
     print("dataset loaded")
 
-    model = get_alexnet(
-        num_channels=1,
+    get_model = importer["get_model"]  # type: callable
+    args = importer["model_args"]  # type: tuple
+    kwargs = importer["model_kwargs"]  # type: dict
+    kwargs.update(dict(
         num_classes=dataset.num_classes,
-        pretrained=True,
-        pretrained_path=opt.pretrained if opt.pretrained else None,
+        pretrained_path=opt.pretrained,
         train_features=opt.train_features,
-    )
+    ))
+    model = get_model(*args, **kwargs)
     print("using model", model)
 
     writer = SummaryWriter(log_dir=opt.logdir)
