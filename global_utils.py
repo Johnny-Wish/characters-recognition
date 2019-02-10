@@ -5,7 +5,7 @@ import time
 
 def dump(obj, dest):
     """
-    a trvial tool for dumping object on disk
+    a trivial tool for dumping object on disk
     :param obj: object to be dumped
     :param dest: dump path
     :return: None
@@ -79,5 +79,6 @@ class JsonMetricQueueWriter:
     def __len__(self):
         return len(self._jsons)
 
+    # REVIEW does __iter__ works this way?
     def __iter__(self):
         return self._jsons

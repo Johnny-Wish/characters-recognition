@@ -19,3 +19,7 @@ def deprecated(fcn):
         return fcn(*args, **kwargs)
 
     return new_fcn
+
+
+class DeprecatedError(DeprecationWarning):
+    pass

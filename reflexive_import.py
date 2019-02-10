@@ -1,15 +1,14 @@
 import importlib
-from api import deprecated
+from api import deprecated, DeprecatedError
 
 
 class Null:
-    """a custom Null close representing a Null object"""
+    """a custom Null class representing a Null object"""
     pass
 
 
 class ReflexiveImporter:
-    def __init__(self, module_name, var_list, package_name=None, alias_list=None,
-                 model_name="model", param_name="parameter_distribution"):
+    def __init__(self, module_name, var_list, package_name=None, alias_list=None):
         # set the package
         if package_name == ".":
             self._package_name = None
@@ -35,11 +34,6 @@ class ReflexiveImporter:
         else:
             self._alias_lookup = {alias: var for alias, var in zip(alias_list, var_list)}
 
-        self._model_name = model_name  # deprecated
-        self._param_name = param_name  # deprecated
-        self._vars[self._model_name] = self.null  # deprecated, for backward compatibility
-        self._vars[self._param_name] = self.null  # deprecated, for backward compatibility
-
         # use self.null as a placeholder for the module object
         self._module = self.null
 
@@ -54,37 +48,21 @@ class ReflexiveImporter:
 
     @deprecated
     def _set_model(self):
-        if self._module is self.null:
-            self._set_module()
-        try:
-            self._vars[self._model_name] = getattr(self._module, self._model_name)
-        except AttributeError as e:
-            print("module {}.py does not have a {}".format(self._module_name, self._model_name))
-            raise e  # re-raise error
+        raise DeprecatedError
 
     @deprecated
     def _set_param(self):
-        if self._module is self.null:
-            self._set_module()
-        try:
-            self._vars[self._param_name] = getattr(self._module, self._param_name)
-        except AttributeError as e:
-            print("module {}.py does not have a {}".format(self._module_name, self._param_name))
-            raise e  # re-raise error
+        raise DeprecatedError
 
     @property
     @deprecated  # deprecation decorator must be nested inside property decorator
     def model(self):
-        if self._vars[self._model_name] is self.null:
-            self._set_model()
-        return self._vars[self._model_name]
+        raise DeprecatedError
 
     @property
     @deprecated  # deprecation decorator must be nested inside property decorator
     def param_dist(self):
-        if self._vars[self._param_name] is self.null:
-            self._set_param()
-        return self._vars[self._param_name]
+        raise DeprecatedError
 
     def _set_var(self, var_name):
         if self._module is self.null:
@@ -92,7 +70,7 @@ class ReflexiveImporter:
         try:
             self._vars[var_name] = getattr(self._module, var_name)
         except AttributeError as e:
-            print("module {}.py does not have a {}".format(self._module_name, self._param_name))
+            print("module {}.py does not have a {}".format(self._module_name, var_name))
             raise e  # re-raise error
 
     def __getitem__(self, item):

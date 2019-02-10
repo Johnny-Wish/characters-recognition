@@ -1,35 +1,23 @@
 import os
-import sys
-
-sub_dir = os.path.dirname(os.path.realpath(__file__))
-root_dir = os.path.split(sub_dir)[0]
-sys.path += [sub_dir, root_dir]
-
 import argparse
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from pytorch_models.alexnet import get_alexnet
-from pytorch_models.torch_utils import get_metrics_dict, prepend_tag, LossRegister, Checkpointer, EmbedModule
-from torch.utils.data import DataLoader
-from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
+from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
+from pytorch_models.base_session import ForwardSession, _SummarySession
 from torch.optim import Adam, Optimizer
-from preprocess import Dataset, Reshape
-from global_utils import flush_json_metrics
+from preprocess import Dataset
 from tensorboardX import SummaryWriter
+from reflexive_import import ReflexiveImporter
 
 
-class TrainingSession(LossRegister, Checkpointer):
-    def __init__(self, model: EmbedModule, train_set, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
+class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
+    def __init__(self, model: EmbedModule, subset, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
+        ForwardSession.__init__(self, model, subset, batch, device, report_period=report_period)
+        _SummarySession.__init__(self, param_summarize_period=param_summarize_period, summary_writer=summary_writer)
 
-        self.train_set = train_set
-        self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
-        self.model = model.double().to(device)
-        self.report_period = report_period
-        self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
 
         if issubclass(optim, Optimizer):
@@ -39,10 +27,6 @@ class TrainingSession(LossRegister, Checkpointer):
             self.optimizer = optim
         else:
             self.optimizer = Adam(filter(lambda p: p.requires_grad, self.model.parameters()))
-
-        self.device = device
-        self.writer = summary_writer
-        self._global_step = 0
 
     def epoch(self, force_report=False, ignore_max_steps=False, checkpoint=False):
         for samples_batch in self.loader:
@@ -58,105 +42,48 @@ class TrainingSession(LossRegister, Checkpointer):
             if self._global_step % self.param_summarize_period == 0:
                 self.summarize_parameters()
 
-    def split_features_labels(self, samples_batch):
-        return (
-            samples_batch['X'].double().to(self.device),
-            samples_batch['y'].long().to(self.device),
-        )
-
     def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
+        """
+        Train the model for 1 step and collect metrics while increasing global_step by 1.
+        In the meantime, summarize the model and/or embeddings w.r.t the input if necessary.
+        :param samples_batch: a batch yielded when iterating through a torch.utils.data.DataLoader
+        :param report: whether to report metrics or not
+        :param ignore_max_steps: whether to ignore the internal max_step limit
+        :param force_summarize_model: whether to summarize the model regardless of current step
+        :param checkpoint: whether to do checkpoint for the model if a new lowest_loss is reached
+        :return: bool, indicate whether the step was successful. False indicates that max_step is reached.
+        """
         if (not ignore_max_steps) and self._global_step >= self.max_steps > 0:
             print("max_step = {} reached".format(self.max_steps))
+            # notify caller that max step is reached
             return False
-        self._global_step += 1
 
-        features, labels = self.split_features_labels(samples_batch)
-
+        # feed forward for one step
+        features, labels, logits, tagged_metrics = ForwardSession.step(self, samples_batch, report=report, tag="train")
         # only summarize the model (graph) at the first step unless otherwise specified
         if force_summarize_model or self._global_step == 1:
             self.summarize_model(features)
-
-        # feed forward and calculate cross-entropy loss
-        logits = self.model(features)
+        # compute the cross entropy loss
         loss = F.cross_entropy(logits, labels)
-
+        # update the lowest loss and summarize the embedding if necessary
         loss_updated = self.update_lowest_loss(loss)
         if checkpoint and loss_updated:
             self.checkpoint()
             self.summarize_embedding(features, labels, step_id=None)
-
-        if report or self.writer:  # calculate the accuracy, and possibly other metrics in the future
-            with torch.no_grad():
-                predictions = logits.max(1)[1]
-                metrics = get_metrics_dict(labels, predictions)
-                metrics["loss"] = float(loss)
-
-            tagged_metrics = prepend_tag(metrics, "train")
-
-            self._summarize_metrics(tagged_metrics)  # write summaries of metrics to disk
-
-            if report:
-                self._report_metrics(tagged_metrics)
-
-        # zero the gradient, backprop through the net, and do optimization step
+        # report loss if necessary
+        loss_dict = {"loss": float(loss)}
+        if report:
+            self._report_metrics(loss_dict)
+        # summarize all metrics including loss
+        tagged_metrics.update(prepend_tag(loss_dict, "train"))
+        self._summarize_metrics(tagged_metrics)
+        # zero the gradient, backprop through the net, and do an optimization step
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
+        # notify caller that this step was successful
         return True
-
-    @property
-    def global_step(self):
-        return self._global_step
-
-    def _summarize_metrics(self, d: dict):
-        if self.writer is None:
-            return
-        for key in d:
-            self.writer.add_scalar(key, d[key], self._global_step)
-
-    def summarize_embedding(self, features, labels, step_id="current"):
-        """
-        write embedding summaries to local disk (if self.writer is not None)
-        :param features: a torch.Tensor instance representing image batch
-        :param labels: a torch.Tensor instance representing label batch
-        :param step_id: int, None, or "current" (default)
-            if None, do not specify global_step in add_embedding
-            if positive int, specify global_step=step_id
-            if "current", specify global_step = current step of training, (i.e., self._global_step)
-        :return: None
-        """
-        if self.writer is None:
-            return
-        if step_id == "current":
-            step_id = self._global_step
-        meta = [self.train_set.mapping[int(label)] for label in labels]
-        embedding = self.model.embed(features)
-        self.writer.add_embedding(
-            embedding,
-            metadata=meta,
-            label_img=features.float(),  # the tensorboardX backend assumes torch.float32 input
-            global_step=step_id,
-            tag="embedding",
-        )
-
-    def summarize_parameters(self):
-        if self.writer is None:
-            return
-
-        for tag, param in self.model.named_parameters():
-            # summarize a parameter only if it requires gradient
-            if param.requires_grad:
-                self.writer.add_histogram(tag, param, global_step=self.global_step)
-
-    def summarize_model(self, input):
-        if self.writer is None:
-            return
-        # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
-        self.writer.add_graph(self.model, input_to_model=input, verbose=False)
-
-    def _report_metrics(self, d: dict):
-        flush_json_metrics(d, step=self.global_step)
 
     def checkpoint(self):
         torch.save(
@@ -169,6 +96,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--folder", default="../dataset")
     parser.add_argument("--batch", default=512, type=int)
+    parser.add_argument("--model", default="lenet")
     parser.add_argument("--report_period", default=30, type=int)
     parser.add_argument("--param_summarize_period", default=25, type=int)
     parser.add_argument("--max_steps", default=1500, type=int)
@@ -183,24 +111,24 @@ if __name__ == '__main__':
     device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
     print("using device {}".format(device))
 
-    dataset = Dataset(
-        folder=opt.folder,
-        transformer=Compose([
-            Reshape(28, 28, 1),
-            ToPILImage(),
-            Resize((227, 227)),
-            ToTensor(),
-        ])
+    importer = ReflexiveImporter(
+        module_name=opt.model,
+        var_list=["get_model", "model_args", "model_kwargs", "transformer"],
+        package_name="pytorch_models",
     )
+
+    dataset = Dataset(folder=opt.folder, transformer=importer["transformer"])
     print("dataset loaded")
 
-    model = get_alexnet(
-        num_channels=1,
+    get_model = importer["get_model"]  # type: callable
+    args = importer["model_args"]  # type: tuple
+    kwargs = importer["model_kwargs"]  # type: dict
+    kwargs.update(dict(
         num_classes=dataset.num_classes,
-        pretrained=True,
-        pretrained_path=opt.pretrained if opt.pretrained else None,
+        pretrained_path=opt.pretrained,
         train_features=opt.train_features,
-    )
+    ))
+    model = get_model(*args, **kwargs)
     print("using model", model)
 
     writer = SummaryWriter(log_dir=opt.logdir)
@@ -208,7 +136,7 @@ if __name__ == '__main__':
 
     session = TrainingSession(
         model=model,
-        train_set=dataset.train,
+        subset=dataset.train,
         batch=opt.batch,
         device=device,
         max_steps=opt.max_steps,

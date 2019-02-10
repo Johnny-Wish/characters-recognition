@@ -1,21 +1,20 @@
 import unittest
 from reflexive_import import ReflexiveImporter
+from api import DeprecatedError
 
 
 class TestReflexiveImporter(unittest.TestCase):
     def test_legacy(self):
-        from temp.temp_module import model_var as model
-        from temp.temp_module import param_var as param_dist
         importer = ReflexiveImporter(
             module_name="temp_module",
             package_name="temp",
             var_list=[],
-            model_name="model_var",
-            param_name="param_var",
         )
+        with self.assertRaises(DeprecatedError):
+            print(importer.param_dist)
 
-        self.assertEqual(importer.param_dist, param_dist)
-        self.assertEqual(importer.model, model)
+        with self.assertRaises(DeprecatedError):
+            print(importer.model)
 
     def test_import_var_with_alias(self):
         import temp.temp_module as tmp
