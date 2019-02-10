@@ -9,7 +9,7 @@ class EmbedModule(nn.Module):
         super(EmbedModule, self).__init__()
 
     def embed(self, input):
-        raise NotImplementedErro
+        raise NotImplementedError
 
 
 def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
