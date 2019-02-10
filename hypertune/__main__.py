@@ -3,7 +3,7 @@ import argparse
 from preprocess import Dataset
 from global_utils import dump, JsonMetricQueueWriter
 from .search_session import SearchSession
-from .reflexive_import import ReflexiveImporter
+from reflexive_import import ReflexiveImporter
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -22,8 +22,13 @@ if __name__ == '__main__':
     opt = parser.parse_args()
 
     dataset = Dataset(opt.datafile, opt.dataroot).sample_train(opt.train_rate).sample_test(opt.test_rate)
-    importer = ReflexiveImporter(opt.module, opt.package, opt.model, opt.param)
-    session = SearchSession(importer.model, importer.param_dist, dataset, opt.n_iter, opt.cv)
+    importer = ReflexiveImporter(
+        module_name=opt.module,
+        package_name=opt.package,
+        var_list=[opt.model, opt.param],
+        alias_list=["model", "param"]
+    )
+    session = SearchSession(importer["model"], importer["param"], dataset, opt.n_iter, opt.cv)
     session.report_args()
 
     # tune (search for) hyper-parameters

@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 from preprocess import Dataset
 from hypertune.search_session import SearchSession
-from hypertune.reflexive_import import ReflexiveImporter
+from reflexive_import import ReflexiveImporter
 
 
 class TestSearchSession(unittest.TestCase):
