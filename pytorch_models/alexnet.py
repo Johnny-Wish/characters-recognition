@@ -50,11 +50,11 @@ class AlexNet(EmbedModule):
         return flattened_embeddings
 
 
-def get_alexnet(num_channels=3, num_classes=1000, pretrained=True, pretrained_path=None, train_features=True):
+def get_alexnet(num_channels=3, num_classes=1000, pretrained_path=None, train_features=True):
     model = AlexNet(num_channels=num_channels, num_classes=num_classes)
 
-    if pretrained:
-        if pretrained_path is None:
+    if pretrained_path is not None:
+        if pretrained_path == "":
             pretrained_dict = load_url(model_urls['alexnet'])
         else:
             pretrained_dict = torch.load(pretrained_path)
