@@ -20,7 +20,7 @@ from tensorboardX import SummaryWriter
 
 
 class TrainingSession(LossRegister, Checkpointer):
-    def __init__(self, model: EmbedModule, train_set, batch, device, max_steps, optim=Adam, checkpoint_path=".",
+    def __init__(self, model: EmbedModule, train_set, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
@@ -65,7 +65,7 @@ class TrainingSession(LossRegister, Checkpointer):
         )
 
     def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
-        if (not ignore_max_steps) and self._global_step >= self.max_steps:
+        if (not ignore_max_steps) and self._global_step >= self.max_steps > 0:
             print("max_step = {} reached".format(self.max_steps))
             return False
         self._global_step += 1
