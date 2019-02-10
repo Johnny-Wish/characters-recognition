@@ -11,21 +11,21 @@ import torch.nn.functional as F
 from pytorch_models.alexnet import get_alexnet
 from pytorch_models.lenet import get_lenet
 from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
-from pytorch_models.base_session import ForwardSession
+from pytorch_models.base_session import ForwardSession, _SummarySession
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 from torch.optim import Adam, Optimizer
 from preprocess import Dataset, Reshape
 from tensorboardX import SummaryWriter
 
 
-class TrainingSession(LossRegister, Checkpointer, ForwardSession):
+class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
     def __init__(self, model: EmbedModule, train_set, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
         ForwardSession.__init__(self, model, train_set, batch, device, report_period=report_period)
+        _SummarySession.__init__(self, param_summarize_period=param_summarize_period, summary_writer=summary_writer)
 
-        self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
 
         if issubclass(optim, Optimizer):
@@ -35,8 +35,6 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession):
             self.optimizer = optim
         else:
             self.optimizer = Adam(filter(lambda p: p.requires_grad, self.model.parameters()))
-
-        self.writer = summary_writer
 
     def epoch(self, force_report=False, ignore_max_steps=False, checkpoint=False):
         for samples_batch in self.loader:
@@ -94,52 +92,6 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession):
 
         # notify caller that this step was successful
         return True
-
-    def _summarize_metrics(self, d: dict):
-        if self.writer is None:
-            return
-        for key in d:
-            self.writer.add_scalar(key, d[key], self._global_step)
-
-    def summarize_embedding(self, features, labels, step_id="current"):
-        """
-        write embedding summaries to local disk (if self.writer is not None)
-        :param features: a torch.Tensor instance representing image batch
-        :param labels: a torch.Tensor instance representing label batch
-        :param step_id: int, None, or "current" (default)
-            if None, do not specify global_step in add_embedding
-            if positive int, specify global_step=step_id
-            if "current", specify global_step = current step of training, (i.e., self._global_step)
-        :return: None
-        """
-        if self.writer is None:
-            return
-        if step_id == "current":
-            step_id = self._global_step
-        meta = [self.train_set.mapping[int(label)] for label in labels]
-        embedding = self.model.embed(features)
-        self.writer.add_embedding(
-            embedding,
-            metadata=meta,
-            label_img=features.float(),  # the tensorboardX backend assumes torch.float32 input
-            global_step=step_id,
-            tag="embedding",
-        )
-
-    def summarize_parameters(self):
-        if self.writer is None:
-            return
-
-        for tag, param in self.model.named_parameters():
-            # summarize a parameter only if it requires gradient
-            if param.requires_grad:
-                self.writer.add_histogram(tag, param, global_step=self.global_step)
-
-    def summarize_model(self, input):
-        if self.writer is None:
-            return
-        # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
-        self.writer.add_graph(self.model, input_to_model=input, verbose=False)
 
     def checkpoint(self):
         torch.save(

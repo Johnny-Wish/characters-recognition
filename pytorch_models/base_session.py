@@ -2,7 +2,7 @@ import torch
 from global_utils import flush_json_metrics
 from preprocess import Subset
 from torch.utils.data import DataLoader
-from pytorch_models.torch_utils import prepend_tag, get_metrics_dict
+from pytorch_models.torch_utils import prepend_tag, get_metrics_dict, EmbedModule
 from tensorboardX import SummaryWriter
 
 
@@ -60,4 +60,63 @@ class ForwardSession:
 
     def _report_metrics(self, d: dict):
         flush_json_metrics(d, step=self._global_step)
+
+
+class _SummarySession:
+    """
+    This class is extracted from `TrainingSession`, and should not be called directly
+    """
+
+    def __init__(self, param_summarize_period=25, summary_writer: SummaryWriter = None):
+        self.param_summarize_period = param_summarize_period
+        self.writer = summary_writer
+        self._global_step: int
+        self.train_set: Subset
+        self.model: EmbedModule
+
+    def _summarize_metrics(self, d: dict):
+        if self.writer is None:
+            return
+        for key in d:
+            self.writer.add_scalar(key, d[key], self._global_step)
+
+    def summarize_embedding(self, features, labels, step_id="current"):
+        """
+        write embedding summaries to local disk (if self.writer is not None)
+        :param features: a torch.Tensor instance representing image batch
+        :param labels: a torch.Tensor instance representing label batch
+        :param step_id: int, None, or "current" (default)
+            if None, do not specify global_step in add_embedding
+            if positive int, specify global_step=step_id
+            if "current", specify global_step = current step of training, (i.e., self._global_step)
+        :return: None
+        """
+        if self.writer is None:
+            return
+        if step_id == "current":
+            step_id = self._global_step
+        meta = [self.train_set.mapping[int(label)] for label in labels]
+        embedding = self.model.embed(features)
+        self.writer.add_embedding(
+            embedding,
+            metadata=meta,
+            label_img=features.float(),  # the tensorboardX backend assumes torch.float32 input
+            global_step=step_id,
+            tag="embedding",
+        )
+
+    def summarize_parameters(self):
+        if self.writer is None:
+            return
+
+        for tag, param in self.model.named_parameters():
+            # summarize a parameter only if it requires gradient
+            if param.requires_grad:
+                self.writer.add_histogram(tag, param, global_step=self.global_step)
+
+    def summarize_model(self, input):
+        if self.writer is None:
+            return
+        # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
+        self.writer.add_graph(self.model, input_to_model=input, verbose=False)
 
