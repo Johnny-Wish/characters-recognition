@@ -19,11 +19,11 @@ from tensorboardX import SummaryWriter
 
 
 class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
-    def __init__(self, model: EmbedModule, train_set, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
+    def __init__(self, model: EmbedModule, subset, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
-        ForwardSession.__init__(self, model, train_set, batch, device, report_period=report_period)
+        ForwardSession.__init__(self, model, subset, batch, device, report_period=report_period)
         _SummarySession.__init__(self, param_summarize_period=param_summarize_period, summary_writer=summary_writer)
 
         self.max_steps = max_steps
@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     session = TrainingSession(
         model=model,
-        train_set=dataset.train,
+        subset=dataset.train,
         batch=opt.batch,
         device=device,
         max_steps=opt.max_steps,

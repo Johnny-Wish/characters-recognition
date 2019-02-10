@@ -7,9 +7,9 @@ from tensorboardX import SummaryWriter
 
 
 class ForwardSession:
-    def __init__(self, model, train_set, batch, device, report_period=1):
-        self.train_set = train_set  # type: Subset
-        self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
+    def __init__(self, model, subset, batch, device, report_period=1):
+        self.subset = subset  # type: Subset
+        self.loader = DataLoader(subset, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
         self.report_period = report_period
 
@@ -71,7 +71,7 @@ class _SummarySession:
         self.param_summarize_period = param_summarize_period
         self.writer = summary_writer
         self._global_step: int
-        self.train_set: Subset
+        self.subset: Subset
         self.model: EmbedModule
 
     def _summarize_metrics(self, d: dict):
@@ -95,7 +95,7 @@ class _SummarySession:
             return
         if step_id == "current":
             step_id = self._global_step
-        meta = [self.train_set.mapping[int(label)] for label in labels]
+        meta = [self.subset.mapping[int(label)] for label in labels]
         embedding = self.model.embed(features)
         self.writer.add_embedding(
             embedding,
