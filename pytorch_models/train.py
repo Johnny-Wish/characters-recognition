@@ -7,28 +7,24 @@ sys.path += [sub_dir, root_dir]
 
 import argparse
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from pytorch_models.alexnet import get_alexnet
-from pytorch_models.torch_utils import get_metrics_dict, prepend_tag, LossRegister, Checkpointer, EmbedModule
-from torch.utils.data import DataLoader
+from pytorch_models.lenet import get_lenet
+from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
+from pytorch_models.base_session import ForwardSession
 from torchvision.transforms import Compose, Resize, ToPILImage, ToTensor
 from torch.optim import Adam, Optimizer
 from preprocess import Dataset, Reshape
-from global_utils import flush_json_metrics
 from tensorboardX import SummaryWriter
 
 
-class TrainingSession(LossRegister, Checkpointer):
+class TrainingSession(LossRegister, Checkpointer, ForwardSession):
     def __init__(self, model: EmbedModule, train_set, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
                  report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
         LossRegister.__init__(self)
         Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
+        ForwardSession.__init__(self, model, train_set, batch, device, report_period=report_period)
 
-        self.train_set = train_set
-        self.loader = DataLoader(train_set, batch_size=batch, shuffle=True, num_workers=0)
-        self.model = model.double().to(device)
-        self.report_period = report_period
         self.param_summarize_period = param_summarize_period
         self.max_steps = max_steps
 
@@ -40,9 +36,7 @@ class TrainingSession(LossRegister, Checkpointer):
         else:
             self.optimizer = Adam(filter(lambda p: p.requires_grad, self.model.parameters()))
 
-        self.device = device
         self.writer = summary_writer
-        self._global_step = 0
 
     def epoch(self, force_report=False, ignore_max_steps=False, checkpoint=False):
         for samples_batch in self.loader:
@@ -58,56 +52,48 @@ class TrainingSession(LossRegister, Checkpointer):
             if self._global_step % self.param_summarize_period == 0:
                 self.summarize_parameters()
 
-    def split_features_labels(self, samples_batch):
-        return (
-            samples_batch['X'].double().to(self.device),
-            samples_batch['y'].long().to(self.device),
-        )
-
     def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
+        """
+        train the model for 1 step and collect metrics while increasing global_step by 1; summarize the model or
+        embeddings if necessary
+        :param samples_batch: a batch yielded when iterating through a torch.utils.data.DataLoader
+        :param report: whether to report metrics or not
+        :param ignore_max_steps: whether to ignore the internal max_step limit
+        :param force_summarize_model: whether to summarize the model regardless of current step
+        :param checkpoint: whether to do checkpoint for the model if a new lowest_loss is reached
+        :return: bool, indicate whether the step was successful. False indicates that max_step is reached.
+        """
         if (not ignore_max_steps) and self._global_step >= self.max_steps > 0:
             print("max_step = {} reached".format(self.max_steps))
+            # notify caller that max step is reached
             return False
-        self._global_step += 1
 
-        features, labels = self.split_features_labels(samples_batch)
-
+        # feed forward for one step
+        features, labels, logits, tagged_metrics = ForwardSession.step(self, samples_batch, report=report, tag="train")
         # only summarize the model (graph) at the first step unless otherwise specified
         if force_summarize_model or self._global_step == 1:
             self.summarize_model(features)
-
-        # feed forward and calculate cross-entropy loss
-        logits = self.model(features)
+        # compute the cross entropy loss
         loss = F.cross_entropy(logits, labels)
-
+        # update the lowest loss and summarize the embedding if necessary
         loss_updated = self.update_lowest_loss(loss)
         if checkpoint and loss_updated:
             self.checkpoint()
             self.summarize_embedding(features, labels, step_id=None)
-
-        if report or self.writer:  # calculate the accuracy, and possibly other metrics in the future
-            with torch.no_grad():
-                predictions = logits.max(1)[1]
-                metrics = get_metrics_dict(labels, predictions)
-                metrics["loss"] = float(loss)
-
-            tagged_metrics = prepend_tag(metrics, "train")
-
-            self._summarize_metrics(tagged_metrics)  # write summaries of metrics to disk
-
-            if report:
-                self._report_metrics(tagged_metrics)
-
-        # zero the gradient, backprop through the net, and do optimization step
+        # report loss if necessary
+        loss_dict = {"loss": float(loss)}
+        if report:
+            self._report_metrics(loss_dict)
+        # summarize all metrics including loss
+        tagged_metrics.update(prepend_tag(loss_dict, "train"))
+        self._summarize_metrics(tagged_metrics)
+        # zero the gradient, backprop through the net, and do an optimization step
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
+        # notify caller that this step was successful
         return True
-
-    @property
-    def global_step(self):
-        return self._global_step
 
     def _summarize_metrics(self, d: dict):
         if self.writer is None:
@@ -154,9 +140,6 @@ class TrainingSession(LossRegister, Checkpointer):
             return
         # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
         self.writer.add_graph(self.model, input_to_model=input, verbose=False)
-
-    def _report_metrics(self, d: dict):
-        flush_json_metrics(d, step=self.global_step)
 
     def checkpoint(self):
         torch.save(
