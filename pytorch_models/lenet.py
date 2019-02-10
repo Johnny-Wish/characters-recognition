@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 from torch_utils import EmbedModule
+from torchvision.transforms import Compose
+from preprocess import Reshape
 
 
 class LeNet(EmbedModule):
@@ -51,3 +53,16 @@ def get_lenet(num_channels, num_classes, pretrained_path=None, train_features=Tr
         print("The model is assigned random init weights. All layers must be trained")
 
     return model
+
+
+# alias for model getter along with default args and kwargs
+get_model = get_lenet
+model_args = ()
+model_kwargs = dict(
+    num_channels=1,
+)
+
+# dataset transformer corresponding to the model
+transformer = Compose([
+    Reshape(1, 28, 28),
+])

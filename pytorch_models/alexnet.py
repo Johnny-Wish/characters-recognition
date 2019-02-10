@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 from torchvision.models.alexnet import model_urls
+from torchvision.transforms import Compose, ToPILImage, Resize, ToTensor
+from preprocess import Reshape
 from torch.utils.model_zoo import load_url
 from pytorch_models.torch_utils import EmbedModule
 
@@ -74,3 +76,19 @@ def get_alexnet(num_channels=3, num_classes=1000, pretrained_path=None, train_fe
         print("The model is assigned random init weights. All layers must be trained")
 
     return model
+
+
+# alias for model getter along with default args and kwargs
+get_model = get_alexnet
+model_args = ()
+model_kwargs = dict(
+    num_channels=1,
+)
+
+# dataset transformer corresponding to the model
+transformer = Compose([
+    Reshape(28, 28, 1),
+    ToPILImage(),
+    Resize((227, 227)),
+    ToTensor(),
+])
