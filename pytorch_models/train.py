@@ -44,8 +44,8 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySessio
 
     def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
         """
-        train the model for 1 step and collect metrics while increasing global_step by 1; summarize the model or
-        embeddings if necessary
+        Train the model for 1 step and collect metrics while increasing global_step by 1.
+        In the meantime, summarize the model and/or embeddings w.r.t the input if necessary.
         :param samples_batch: a batch yielded when iterating through a torch.utils.data.DataLoader
         :param report: whether to report metrics or not
         :param ignore_max_steps: whether to ignore the internal max_step limit
