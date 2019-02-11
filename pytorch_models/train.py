@@ -1,4 +1,10 @@
 import os
+import sys
+
+sub_dir = os.path.dirname(os.path.realpath(__file__))
+root_dir = os.path.split(sub_dir)[0]
+sys.path += [sub_dir, root_dir]
+
 import argparse
 import torch
 import torch.nn.functional as F
