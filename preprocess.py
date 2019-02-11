@@ -40,7 +40,6 @@ class TransposeFlatten2D:
 
 
 class Subset:
-    # TODO consider transforming X and y before calling __getitem__()
     def __init__(self, X, y, mapping, transformer=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
@@ -48,11 +47,10 @@ class Subset:
         :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
         :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
-        self._X = X
-        self._y = y
+        if isinstance(y, np.ndarray) and len(y.shape) == 2:
+            self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
 
-        if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
-            self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+        self._X = X if transformer is None else [transformer(sample) for sample in X]
 
         self.transformer = transformer
         self._mapping = mapping
@@ -102,11 +100,7 @@ class Subset:
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
 
     def __getitem__(self, item):
-        assert 0 <= item < len(self)
-        if self.transformer is None:
             return {"X": self._X[item], "y": self._y[item]}
-        else:
-            return {"X": self.transformer(self._X[item]), "y": self._y[item]}
 
     def __repr__(self):
         return "<Subset: X={}, y={}>".format(self._X, self._y)
