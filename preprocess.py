@@ -43,8 +43,9 @@ class Subset:
     def __init__(self, X, y, mapping, transformer=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
-        :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
+        :param X: A np.ndarray whose .shape[0] is the n_samples
         :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
+        :param mapping: a dict that maps a label index to a string representation
         :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
         if isinstance(y, np.ndarray) and len(y.shape) == 2:
@@ -102,7 +103,7 @@ class Subset:
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
 
     def __getitem__(self, item):
-            return {"X": self._X[item], "y": self._y[item]}
+        return {"X": self._X[item], "y": self._y[item]}
 
     def __repr__(self):
         return "<Subset: X={}, y={}, mapping={}>".format(self._X, self._y, self.mapping)
@@ -114,7 +115,8 @@ class Dataset:
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
         :param folder: path to the folder containing data files
-        :param label_order: "shift", "reorder" or None, whether and how to treat label orders
+        :param transformer: a callable instance that transforms the input features
+        :param transpose: whether to transpose the flattened representation, recommended for sprites visualization
         """
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
