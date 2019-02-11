@@ -105,7 +105,7 @@ class Subset:
             return {"X": self._X[item], "y": self._y[item]}
 
     def __repr__(self):
-        return "<Subset: X={}, y={}>".format(self._X, self._y)
+        return "<Subset: X={}, y={}, mapping={}>".format(self._X, self._y, self.mapping)
 
 
 class Dataset:
