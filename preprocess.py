@@ -55,7 +55,8 @@ class Subset:
         self.transformer = transformer
         self._mapping = mapping
 
-        assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
+        if len(self._X) != len(self._y):
+            raise ValueError("X and y differ in length {} != {}".format(len(self._X), len(self._y)))
 
     @property
     def X(self):
