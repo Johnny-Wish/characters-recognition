@@ -14,6 +14,7 @@ This file contains pre-processing tools of the dataset, assumed to be of a stand
 import os
 import numpy as np
 from scipy.io import loadmat
+from torchvision.transforms import Compose
 
 
 class Reshape:
@@ -22,6 +23,20 @@ class Reshape:
 
     def __call__(self, array: np.ndarray):
         return array.reshape(*self.shape)
+
+
+class TransposeFlatten2D:
+    def __init__(self, n_rows, n_cols):
+        transpose_flatten = Compose([
+            Reshape(n_rows, n_cols),
+            np.transpose,
+            Reshape(n_rows * n_cols),
+        ])
+        indices = np.arange(0, n_rows * n_cols)
+        self.reordered_indices = transpose_flatten(indices)
+
+    def __call__(self, arr):
+        return arr[self.reordered_indices]
 
 
 class Subset:
