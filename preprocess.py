@@ -78,6 +78,7 @@ class Subset:
         return cls(
             X=d.get("X", None),
             y=d.get("y", None),
+            mapping=d.get("mapping", None),
         )
 
     def sampled(self, size=1.0):
