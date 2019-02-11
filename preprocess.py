@@ -109,7 +109,7 @@ class Subset:
 
 
 class Dataset:
-    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None):
+    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None, transpose=True):
         """
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
@@ -119,6 +119,12 @@ class Dataset:
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
+
+        if transpose:
+            if transformer is None:
+                transformer = TransposeFlatten2D(28, 28)
+            else:
+                transformer = Compose([TransposeFlatten2D(28, 28), transformer])
 
         self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
         self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
