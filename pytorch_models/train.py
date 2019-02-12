@@ -1,9 +1,15 @@
 import os
-import argparse
+import sys
+
+sub_dir = os.path.dirname(os.path.realpath(__file__))
+root_dir = os.path.split(sub_dir)[0]
+sys.path += [sub_dir, root_dir]
+
 import torch
 import torch.nn.functional as F
 from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
 from pytorch_models.base_session import ForwardSession, _SummarySession
+from pytorch_models.pytorch_args import TrainParser, TrainArgs
 from torch.optim import Adam, Optimizer
 from preprocess import Dataset
 from tensorboardX import SummaryWriter
@@ -93,21 +99,9 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySessio
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--folder", default="../dataset")
-    parser.add_argument("--batch", default=512, type=int)
-    parser.add_argument("--model", default="lenet")
-    parser.add_argument("--report_period", default=30, type=int)
-    parser.add_argument("--param_summarize_period", default=25, type=int)
-    parser.add_argument("--max_steps", default=1500, type=int)
-    parser.add_argument("--cuda", action="store_true")
-    parser.add_argument("--output", default="/output", type=str)
-    parser.add_argument("--pretrained", default=None)
-    parser.add_argument("--train_features", action="store_true")
-    parser.add_argument("--logdir", default="/output")
-    parser.add_argument("--checkpoint", action="store_true")
-    opt = parser.parse_args()
-    print(opt)
+    parser = TrainParser()
+    opt = TrainArgs(parser)
+
     device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
     print("using device {}".format(device))
 
@@ -117,7 +111,7 @@ if __name__ == '__main__':
         package_name="pytorch_models",
     )
 
-    dataset = Dataset(folder=opt.folder, transformer=importer["transformer"])
+    dataset = Dataset(filename=opt.datafile, folder=opt.dataroot, transformer=importer["transformer"])
     print("dataset loaded")
 
     get_model = importer["get_model"]  # type: callable
