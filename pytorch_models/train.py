@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
 from pytorch_models.base_session import ForwardSession, _SummarySession
-from pytorch_models.pytorch_args import TrainParser, TrainArgs
+from pytorch_models.pytorch_args import TorchTrainParser, TorchTrainArgs
 from torch.optim import Adam, Optimizer
 from preprocess import Dataset
 from tensorboardX import SummaryWriter
@@ -99,19 +99,19 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySessio
 
 
 if __name__ == '__main__':
-    parser = TrainParser()
-    opt = TrainArgs(parser)
+    parser = TorchTrainParser()
+    args = TorchTrainArgs(parser)
 
-    device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if args.cuda or torch.cuda.is_available() else "cpu")
     print("using device {}".format(device))
 
     importer = ReflexiveImporter(
-        module_name=opt.model,
+        module_name=args.model,
         var_list=["get_model", "model_args", "model_kwargs", "transformer"],
         package_name="pytorch_models",
     )
 
-    dataset = Dataset(filename=opt.datafile, folder=opt.dataroot, transformer=importer["transformer"])
+    dataset = Dataset(filename=args.datafile, folder=args.dataroot, transformer=importer["transformer"])
     print("dataset loaded")
 
     get_model = importer["get_model"]  # type: callable
@@ -119,26 +119,26 @@ if __name__ == '__main__':
     model_kwargs = importer["model_kwargs"]  # type: dict
     model_kwargs.update(dict(
         num_classes=dataset.num_classes,
-        pretrained_path=opt.pretrained,
-        train_features=opt.train_features,
+        pretrained_path=args.pretrained,
+        train_features=args.train_features,
     ))
     model = get_model(*model_args, **model_kwargs)
     print("using model", model)
 
-    writer = SummaryWriter(log_dir=opt.logdir)
+    writer = SummaryWriter(log_dir=args.logdir)
     print("logging summaries at", writer.log_dir)
 
     session = TrainingSession(
         model=model,
         subset=dataset.train,
-        batch=opt.batch,
+        batch=args.batch,
         device=device,
-        max_steps=opt.max_steps,
-        checkpoint_path=opt.output,
-        report_period=opt.report_period,
-        param_summarize_period=opt.param_summarize_period,
+        max_steps=args.max_steps,
+        checkpoint_path=args.output,
+        report_period=args.report_period,
+        param_summarize_period=args.param_summarize_period,
         summary_writer=writer,
     )
     print("training session instantiated")
 
-    session.epoch(checkpoint=opt.checkpoint)
+    session.epoch(checkpoint=args.checkpoint)
