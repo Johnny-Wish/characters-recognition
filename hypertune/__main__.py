@@ -7,28 +7,28 @@ from reflexive_import import ReflexiveImporter
 
 if __name__ == '__main__':
     parser = SklearnSessionParser()
-    opt = SklearnSessionArgs(parser)
+    args = SklearnSessionArgs(parser)
 
-    dataset = Dataset(opt.datafile, opt.dataroot).sample_train(opt.train_rate).sample_test(opt.test_rate)
+    dataset = Dataset(args.datafile, args.dataroot).sample_train(args.train_rate).sample_test(args.test_rate)
     importer = ReflexiveImporter(
-        module_name=opt.model,
+        module_name=args.model,
         var_list=["model", "parameter_distribution"],
         alias_list=["model", "param"]
     )
-    session = SearchSession(importer["model"], importer["param"], dataset, opt.n_iter, opt.cv)
+    session = SearchSession(importer["model"], importer["param"], dataset, args.n_iter, args.cv)
     session.report_args()
 
     # tune (search for) hyper-parameters
     session.fit()
     session.report_best()
     session.report_result()
-    dump(session.search_results, os.path.join(opt.output, "search-results.pkl"))
+    dump(session.search_results, os.path.join(args.output, "search-results.pkl"))
 
     # test the best estimator found
     session.test()
     for metric in session.test_result:
         print("testing {}: {}".format(metric, session.test_result[metric]))
-    dump(session.test_result, os.path.join(opt.output, "test-results.pkl"))
+    dump(session.test_result, os.path.join(args.output, "test-results.pkl"))
 
     session.search_results.sort_values(by=["mean_test_score"])
     JsonMetricQueueWriter("mean-f1-score", session.search_results.mean_test_score).write()
