@@ -55,9 +55,14 @@ class BaseModelArgs(_StaticRegister):
 class BaseSessionParser(_StaticParser):
     def _setup(self):
         self.add_argument("--output", default="/output", type=str, help="folder to store trained parameters")
+        self.add_argument("--verbose", action="store_true", help="verbose tag")
 
 
 class BaseSessionArgs(_StaticRegister):
     @property
     def output(self):
         return self.args.output
+
+    @property
+    def verbose(self):
+        return self.args.verbose
