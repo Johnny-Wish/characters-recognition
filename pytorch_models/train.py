@@ -115,14 +115,14 @@ if __name__ == '__main__':
     print("dataset loaded")
 
     get_model = importer["get_model"]  # type: callable
-    args = importer["model_args"]  # type: tuple
-    kwargs = importer["model_kwargs"]  # type: dict
-    kwargs.update(dict(
+    model_args = importer["model_args"]  # type: tuple
+    model_kwargs = importer["model_kwargs"]  # type: dict
+    model_kwargs.update(dict(
         num_classes=dataset.num_classes,
         pretrained_path=opt.pretrained,
         train_features=opt.train_features,
     ))
-    model = get_model(*args, **kwargs)
+    model = get_model(*model_args, **model_kwargs)
     print("using model", model)
 
     writer = SummaryWriter(log_dir=opt.logdir)
