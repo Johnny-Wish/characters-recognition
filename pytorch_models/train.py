@@ -7,13 +7,11 @@ sys.path += [sub_dir, root_dir]
 
 import torch
 import torch.nn.functional as F
-from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
+from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule, get_dataset_and_model
 from pytorch_models.base_session import ForwardSession, _SummarySession
 from pytorch_models.pytorch_args import TorchTrainParser, TorchTrainArgs
 from torch.optim import Adam, Optimizer
-from preprocess import Dataset
 from tensorboardX import SummaryWriter
-from reflexive_import import ReflexiveImporter
 
 
 class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
@@ -105,25 +103,7 @@ if __name__ == '__main__':
     device = torch.device("cuda" if args.cuda or torch.cuda.is_available() else "cpu")
     print("using device {}".format(device))
 
-    importer = ReflexiveImporter(
-        module_name=args.model,
-        var_list=["get_model", "model_args", "model_kwargs", "transformer"],
-        package_name="pytorch_models",
-    )
-
-    dataset = Dataset(filename=args.datafile, folder=args.dataroot, transformer=importer["transformer"])
-    print("dataset loaded")
-
-    get_model = importer["get_model"]  # type: callable
-    model_args = importer["model_args"]  # type: tuple
-    model_kwargs = importer["model_kwargs"]  # type: dict
-    model_kwargs.update(dict(
-        num_classes=dataset.num_classes,
-        pretrained_path=args.pretrained,
-        train_features=args.train_features,
-    ))
-    model = get_model(*model_args, **model_kwargs)
-    print("using model", model)
+    dataset, model = get_dataset_and_model(args)
 
     writer = SummaryWriter(log_dir=args.logdir)
     print("logging summaries at", writer.log_dir)
