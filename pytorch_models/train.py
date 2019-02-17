@@ -10,6 +10,7 @@ import torch.nn.functional as F
 from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule, get_dataset_and_model
 from pytorch_models.base_session import ForwardSession, _SummarySession
 from pytorch_models.pytorch_args import TorchTrainParser, TorchTrainArgs
+from pytorch_models.build_session import BaseSessionBuilder
 from torch.optim import Adam, Optimizer
 from tensorboardX import SummaryWriter
 
@@ -96,29 +97,41 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySessio
         )
 
 
+class TrainingSessionBuilder(BaseSessionBuilder):
+    def __init__(self, args: TorchTrainArgs):
+        super(TrainingSessionBuilder, self).__init__(args)
+
+        if isinstance(self.args, TorchTrainArgs):
+            self.static_model_kwargs.update(
+                train_features=self.args.train_features,
+            )
+        else:
+            raise TypeError("require TorchTrainArgs, got {}".format(type(self.args)))
+
+    def _set_session(self):
+        super(TrainingSessionBuilder, self)._set_session()
+
+        if self._session is not None:
+            return
+
+        self.args: TorchTrainArgs
+        self._session = TrainingSession(
+            model=self._model,
+            subset=self._dataset.train,
+            batch=self.args.batch,
+            device=self._device,
+            max_steps=self.args.batch,
+            checkpoint_path=self.args.output,
+            report_period=self.args.report_period,
+            param_summarize_period=self.args.param_summarize_period,
+            summary_writer=self._writer,
+        )
+
+
 if __name__ == '__main__':
     parser = TorchTrainParser()
     args = TorchTrainArgs(parser)
-
-    device = torch.device("cuda" if args.cuda or torch.cuda.is_available() else "cpu")
-    print("using device {}".format(device))
-
-    dataset, model = get_dataset_and_model(args)
-
-    writer = SummaryWriter(log_dir=args.logdir)
-    print("logging summaries at", writer.log_dir)
-
-    session = TrainingSession(
-        model=model,
-        subset=dataset.train,
-        batch=args.batch,
-        device=device,
-        max_steps=args.max_steps,
-        checkpoint_path=args.output,
-        report_period=args.report_period,
-        param_summarize_period=args.param_summarize_period,
-        summary_writer=writer,
-    )
-    print("training session instantiated")
+    session_builder = TrainingSessionBuilder(args)
+    session = session_builder()
 
     session.epoch(checkpoint=args.checkpoint)
