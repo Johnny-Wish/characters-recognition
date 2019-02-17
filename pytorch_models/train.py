@@ -5,15 +5,14 @@ sub_dir = os.path.dirname(os.path.realpath(__file__))
 root_dir = os.path.split(sub_dir)[0]
 sys.path += [sub_dir, root_dir]
 
-import argparse
 import torch
 import torch.nn.functional as F
-from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
+from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule, get_dataset_and_model
 from pytorch_models.base_session import ForwardSession, _SummarySession
+from pytorch_models.pytorch_args import TorchTrainParser, TorchTrainArgs
+from pytorch_models.build_session import BaseSessionBuilder
 from torch.optim import Adam, Optimizer
-from preprocess import Dataset
 from tensorboardX import SummaryWriter
-from reflexive_import import ReflexiveImporter
 
 
 class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
@@ -98,59 +97,41 @@ class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySessio
         )
 
 
+class TrainingSessionBuilder(BaseSessionBuilder):
+    def __init__(self, args: TorchTrainArgs):
+        super(TrainingSessionBuilder, self).__init__(args)
+
+        if isinstance(self.args, TorchTrainArgs):
+            self.static_model_kwargs.update(
+                train_features=self.args.train_features,
+            )
+        else:
+            raise TypeError("require TorchTrainArgs, got {}".format(type(self.args)))
+
+    def _set_session(self):
+        super(TrainingSessionBuilder, self)._set_session()
+
+        if self._session is not None:
+            return
+
+        self.args: TorchTrainArgs
+        self._session = TrainingSession(
+            model=self._model,
+            subset=self._dataset.train,
+            batch=self.args.batch,
+            device=self._device,
+            max_steps=self.args.batch,
+            checkpoint_path=self.args.output,
+            report_period=self.args.report_period,
+            param_summarize_period=self.args.param_summarize_period,
+            summary_writer=self._writer,
+        )
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--folder", default="../dataset")
-    parser.add_argument("--batch", default=512, type=int)
-    parser.add_argument("--model", default="lenet")
-    parser.add_argument("--report_period", default=30, type=int)
-    parser.add_argument("--param_summarize_period", default=25, type=int)
-    parser.add_argument("--max_steps", default=1500, type=int)
-    parser.add_argument("--cuda", action="store_true")
-    parser.add_argument("--output", default="/output", type=str)
-    parser.add_argument("--pretrained", default=None)
-    parser.add_argument("--train_features", action="store_true")
-    parser.add_argument("--logdir", default="/output")
-    parser.add_argument("--checkpoint", action="store_true")
-    opt = parser.parse_args()
-    print(opt)
-    device = torch.device("cuda" if opt.cuda or torch.cuda.is_available() else "cpu")
-    print("using device {}".format(device))
+    parser = TorchTrainParser()
+    args = TorchTrainArgs(parser)
+    session_builder = TrainingSessionBuilder(args)
+    session = session_builder()
 
-    importer = ReflexiveImporter(
-        module_name=opt.model,
-        var_list=["get_model", "model_args", "model_kwargs", "transformer"],
-        package_name="pytorch_models",
-    )
-
-    dataset = Dataset(folder=opt.folder, transformer=importer["transformer"])
-    print("dataset loaded")
-
-    get_model = importer["get_model"]  # type: callable
-    args = importer["model_args"]  # type: tuple
-    kwargs = importer["model_kwargs"]  # type: dict
-    kwargs.update(dict(
-        num_classes=dataset.num_classes,
-        pretrained_path=opt.pretrained,
-        train_features=opt.train_features,
-    ))
-    model = get_model(*args, **kwargs)
-    print("using model", model)
-
-    writer = SummaryWriter(log_dir=opt.logdir)
-    print("logging summaries at", writer.log_dir)
-
-    session = TrainingSession(
-        model=model,
-        subset=dataset.train,
-        batch=opt.batch,
-        device=device,
-        max_steps=opt.max_steps,
-        checkpoint_path=opt.output,
-        report_period=opt.report_period,
-        param_summarize_period=opt.param_summarize_period,
-        summary_writer=writer,
-    )
-    print("training session instantiated")
-
-    session.epoch(checkpoint=opt.checkpoint)
+    session.epoch(checkpoint=args.checkpoint)
