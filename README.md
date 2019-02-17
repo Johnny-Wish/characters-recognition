@@ -65,4 +65,15 @@ A TensorboardX visualization tool is added for metric and parameter visualizatio
 
 ### Update on Jan 27, 2019
 
-A simpler version of CNN, referred to as LeNet has been tested. Performance of this network (85%+ accuracy and F-score) is even better pretrained AlexNet, and the training time is greatly reduced. See [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72), [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72) and [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72) for training logs and outputs.
+A simpler version of CNN, referred to as LeNet has been tested. Performance of this network (85%+ accuracy and F-score) is even better than pretrained AlexNet, and the training time is greatly reduced. See [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72), [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72) and [this job](https://www.floydhub.com/wish1104/projects/character-recognition/72) for training logs and outputs.
+
+### Update on Feb 10, 2019
+
+Some API changes has been made:
+
+1. Abstracted a new `ForwardSession` class and a new `_SummarySession` class from `TrainingSession`.
+2. The class`ReflexiveImporter` has been refactored for general purposes.
+3. Used reflexive API for importing models and corresponding data transformer.
+
+Next step is to implement an `InferenceSession` extending `ForwardSession` and `_SummarySession`, and tools for visualizing model performances.
+

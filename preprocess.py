@@ -14,6 +14,7 @@ This file contains pre-processing tools of the dataset, assumed to be of a stand
 import os
 import numpy as np
 from scipy.io import loadmat
+from torchvision.transforms import Compose
 
 
 class Reshape:
@@ -24,25 +25,39 @@ class Reshape:
         return array.reshape(*self.shape)
 
 
+class TransposeFlatten2D:
+    def __init__(self, n_rows, n_cols):
+        transpose_flatten = Compose([
+            Reshape(n_rows, n_cols),
+            np.transpose,
+            Reshape(n_rows * n_cols),
+        ])
+        indices = np.arange(0, n_rows * n_cols)
+        self.reordered_indices = transpose_flatten(indices)
+
+    def __call__(self, arr):
+        return arr[self.reordered_indices]
+
+
 class Subset:
-    # TODO consider transforming X and y before calling __getitem__()
     def __init__(self, X, y, mapping, transformer=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
-        :param X: A 2-dim np.ndarray, n_samples x n_feature_dims
+        :param X: A np.ndarray whose .shape[0] is the n_samples
         :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
+        :param mapping: a dict that maps a label index to a string representation
         :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
-        self._X = X
-        self._y = y
+        if isinstance(y, np.ndarray) and len(y.shape) == 2:
+            self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
 
-        if isinstance(self._y, np.ndarray) and len(self._y.shape) == 2:
-            self._y = self._y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+        self._X = X if transformer is None else [transformer(sample) for sample in X]
 
         self.transformer = transformer
         self._mapping = mapping
 
-        assert len(self._X) == len(self._y), "X and y differ in length {} != {}".format(len(self._X), len(self._y))
+        if len(self._X) != len(self._y):
+            raise ValueError("X and y differ in length {} != {}".format(len(self._X), len(self._y)))
 
     @property
     def X(self):
@@ -64,6 +79,7 @@ class Subset:
         return cls(
             X=d.get("X", None),
             y=d.get("y", None),
+            mapping=d.get("mapping", None),
         )
 
     def sampled(self, size=1.0):
@@ -87,27 +103,30 @@ class Subset:
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
 
     def __getitem__(self, item):
-        assert 0 <= item < len(self)
-        if self.transformer is None:
-            return {"X": self._X[item], "y": self._y[item]}
-        else:
-            return {"X": self.transformer(self._X[item]), "y": self._y[item]}
+        return {"X": self._X[item], "y": self._y[item]}
 
     def __repr__(self):
-        return "<Subset: X={}, y={}>".format(self._X, self._y)
+        return "<Subset: X={}, y={}, mapping={}>".format(self._X, self._y, self.mapping)
 
 
 class Dataset:
-    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None):
+    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None, transpose=True):
         """
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
         :param folder: path to the folder containing data files
-        :param label_order: "shift", "reorder" or None, whether and how to treat label orders
+        :param transformer: a callable instance that transforms the input features
+        :param transpose: whether to transpose the flattened representation, recommended for sprites visualization
         """
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
+
+        if transpose:
+            if transformer is None:
+                transformer = TransposeFlatten2D(28, 28)
+            else:
+                transformer = Compose([TransposeFlatten2D(28, 28), transformer])
 
         self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
         self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
