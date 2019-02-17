@@ -37,6 +37,7 @@ class TorchSessionParser(TorchDatasetParser, TorchModelParser, BaseSessionParser
         self.add_argument("--report_period", default=30, type=int, help="how frequently to report session metrics, "
                                                                         "in number of steps (mini-batches)")
         self.add_argument("--cuda", action="store_true", help="whether to use cuda (if available)")
+        self.add_argument("--logdir", default="/output", help="folder to store tensorboard summaries")
         return self
 
 
@@ -49,10 +50,14 @@ class TorchSessionArgs(TorchDatasetArgs, TorchModelArgs, BaseSessionArgs):
     def cuda(self):
         return self.args.cuda
 
+    @property
+    def logdir(self):
+        return self.args.logdir
+
 
 class TorchTrainParser(TorchSessionParser):
     def _setup(self):
-        BaseSessionParser._setup(self)
+        TorchSessionParser._setup(self)
         self.add_argument("--param_summarize_period", default=25, type=int, help="how frequently to summarize "
                                                                                  "parameter distributions, "
                                                                                  "in number  of steps (mini-batches)")
@@ -60,7 +65,6 @@ class TorchTrainParser(TorchSessionParser):
                                                                       "terminated")
         self.add_argument("--train_features", action="store_true", help="to train the feature layers (disabled by "
                                                                         "default)")
-        self.add_argument("--logdir", default="/output", help="folder to store tensorboard summaries")
         self.add_argument("--checkpoint", action="store_true", help="do checkpoint for the model (disabled by default)")
         return self
 
@@ -79,17 +83,13 @@ class TorchTrainArgs(TorchSessionArgs):
         return self.args.train_features
 
     @property
-    def logdir(self):
-        return self.args.logdir
-
-    @property
     def checkpoint(self):
         return self.args.checkpoint
 
 
 class TorchInferParser(TorchSessionParser):
     def _setup(self):
-        BaseSessionParser._setup(self)
+        TorchSessionParser._setup(self)
         return self
 
 

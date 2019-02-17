@@ -3,7 +3,7 @@ import argparse
 
 class _StaticParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
-        argparse.ArgumentParser.__init__(*args, **kwargs)
+        argparse.ArgumentParser.__init__(self, *args, **kwargs)
         self._setup()
 
     def _setup(self):
