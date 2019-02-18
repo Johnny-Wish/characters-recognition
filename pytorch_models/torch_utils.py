@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import precision_recall_fscore_support
-from pytorch_models.pytorch_args import TorchSessionArgs, TorchTrainArgs, TorchInferArgs
-from reflexive_import import ReflexiveImporter
-from preprocess import Dataset
 
 
 class EmbedModule(nn.Module):
@@ -22,7 +19,7 @@ def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
     _, _, _, support = precision_recall_fscore_support(labels, preds, warn_for=())
     std_support = np.std(support)
 
-    # torch.Tensor are not serializable, therefore casting metrics to built-in python classes
+    # torch.Tensor are not serializable, therefore we cast metrics to built-in python classes
     return {
         "accuracy": float(acc),
         "precision": float(precision),
@@ -70,34 +67,3 @@ class Checkpointer:
 
     def checkpoint(self):
         pass
-
-
-def get_dataset_and_model(args: TorchSessionArgs):
-    importer = ReflexiveImporter(
-        module_name=args.model,
-        var_list=["get_model", "model_args", "model_kwargs", "transformer"],
-        package_name="pytorch_models",
-    )
-
-    dataset = Dataset(filename=args.datafile, folder=args.dataroot, transformer=importer["transformer"])
-    if args.verbose:
-        print("dataset loaded")
-
-    get_model = importer["get_model"]  # type: callable
-    model_args = importer["model_args"]  # type: tuple
-    model_kwargs = importer["model_kwargs"]  # type: dict
-    model_kwargs.update(dict(
-        num_classes=dataset.num_classes,
-        pretrained_path=args.pretrained,
-    ))
-
-    # for a training session, model needs to be specified whether the features are trained
-    if isinstance(args, TorchTrainArgs):
-        model_kwargs.update(dict(
-            train_features=args.train_features,
-        ))
-
-    model = get_model(*model_args, **model_kwargs)
-    if args.verbose:
-        print("using model", model)
-    return dataset, model

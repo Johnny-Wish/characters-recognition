@@ -7,7 +7,7 @@ sys.path += [sub_dir, root_dir]
 
 import torch
 import torch.nn.functional as F
-from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule, get_dataset_and_model
+from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
 from pytorch_models.base_session import ForwardSession, _SummarySession
 from pytorch_models.pytorch_args import TorchTrainParser, TorchTrainArgs
 from pytorch_models.build_session import BaseSessionBuilder
