@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torch_utils import EmbedModule
+from pytorch_models.torch_utils import EmbedModule
 from torchvision.transforms import Compose
 from preprocess import Reshape
 
