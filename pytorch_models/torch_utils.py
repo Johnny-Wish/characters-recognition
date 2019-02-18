@@ -11,6 +11,9 @@ class EmbedModule(nn.Module):
     def embed(self, input):
         raise NotImplementedError
 
+    def forward(self, *input):
+        raise NotImplementedError
+
 
 def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
     acc = (preds == labels).float().mean()
