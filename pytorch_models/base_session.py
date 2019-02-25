@@ -70,11 +70,9 @@ class _SummarySession:
     def __init__(self, param_summarize_period=25, summary_writer: SummaryWriter = None):
         self.param_summarize_period = param_summarize_period
         self.writer = summary_writer
-        self._global_step: int
-        self.subset: Subset
-        self.model: EmbedModule
 
     def _summarize_metrics(self, d: dict):
+        self._global_step: int
         if self.writer is None:
             return
         for key in d:
@@ -91,6 +89,9 @@ class _SummarySession:
             if "current", specify global_step = current step of training, (i.e., self._global_step)
         :return: None
         """
+        self._global_step: int
+        self.subset: Subset
+        self.model: EmbedModule
         if self.writer is None:
             return
         if step_id == "current":
@@ -106,15 +107,18 @@ class _SummarySession:
         )
 
     def summarize_parameters(self):
+        self._global_step: int
+        self.model: EmbedModule
         if self.writer is None:
             return
 
         for tag, param in self.model.named_parameters():
             # summarize a parameter only if it requires gradient
             if param.requires_grad:
-                self.writer.add_histogram(tag, param, global_step=self.global_step)
+                self.writer.add_histogram(tag, param, global_step=self._global_step)
 
     def summarize_model(self, input):
+        self.model: EmbedModule
         if self.writer is None:
             return
         # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
