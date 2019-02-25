@@ -32,7 +32,7 @@ An alternative for steps 3 and 4 is to run the command `python dataset_download.
 3. Run the following command, specify other relevant arugments if necessary. (See `python -m hypertune -h` for help)
 
    ```bash
-   python -m hypertune --module <YOUR_MODULE_NAME> --n_iter <NUMBER OF SEARCH ITERATIONS> --cv <NUMBER OF CV FOLDS> --outf <FOLDER FOR DUMPING RESULTS>
+   python -m hypertune --model <YOUR_CLASSIFIER_MODLE> --n_iter <NUMBER OF SEARCH ITERATIONS> --cv <NUMBER OF CV FOLDS> --output <FOLDER FOR DUMPING RESULTS>
    ```
 
 4. `n_iter` randomized search will be made, with the CV/test results being printed to screen and saved to the folder `outf`, where `n_iter` and `outf` are specified in the previous step.
