@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from pytorch_models.torch_utils import EmbedModule
+from pytorch_models.torch_utils import EmbedModule, EmbedModuleBuilder
 from torchvision.transforms import Compose
 from preprocess import Reshape
 
@@ -37,26 +37,24 @@ class LeNet(EmbedModule):
         return flattened_embeddings
 
 
-def get_lenet(num_channels, num_classes, pretrained_path=None, train_features=True):
-    model = LeNet(num_channels, num_classes)
+class LeNetBuilder(EmbedModuleBuilder):
+    def _instantiate_model(self):
+        self._model = LeNet(self.num_channels, self.num_classes)
 
-    if pretrained_path is not None:
-        state_dict = torch.load(pretrained_path)
-        model.load_state_dict(state_dict)
+    def _process_state_dict(self, d):
+        return d
 
-        if not train_features:
-            model.features.requires_grad = False
-            for param in model.features.parameters():
+    def _set_trainable(self):
+        super(LeNetBuilder, self)._set_trainable()
+
+        if not self.train_features:
+            self._model.features.requires_grad = False
+            for param in self._model.parameters():
                 param.requires_grad = False
-
-    elif not train_features:
-        print("The model is assigned random init weights. All layers must be trained")
-
-    return model
 
 
 # alias for model getter along with default args and kwargs
-get_model = get_lenet
+builder_class = LeNetBuilder
 model_args = ()
 model_kwargs = dict(
     num_channels=1,

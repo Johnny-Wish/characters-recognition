@@ -4,7 +4,7 @@ from torchvision.models.alexnet import model_urls
 from torchvision.transforms import Compose, ToPILImage, Resize, ToTensor
 from preprocess import Reshape
 from torch.utils.model_zoo import load_url
-from pytorch_models.torch_utils import EmbedModule
+from pytorch_models.torch_utils import EmbedModule, EmbedModuleBuilder
 
 
 class AlexNet(EmbedModule):
@@ -52,34 +52,38 @@ class AlexNet(EmbedModule):
         return flattened_embeddings
 
 
-def get_alexnet(num_channels=3, num_classes=1000, pretrained_path=None, train_features=True):
-    model = AlexNet(num_channels=num_channels, num_classes=num_classes)
+# TODO convert the following getter class to a subclass of EmbedModuleBuilder
+class AlexNetBuilder(EmbedModuleBuilder):
+    def _set_trainable(self):
+        super(AlexNetBuilder, self)._set_trainable()
 
-    if pretrained_path is not None:
-        if pretrained_path == "":
-            pretrained_dict = load_url(model_urls['alexnet'])
-        else:
-            pretrained_dict = torch.load(pretrained_path)
-        if num_channels == 1:
-            pretrained_dict["features.0.weight"] = pretrained_dict["features.0.weight"].sum(dim=1, keepdim=True)
-        pretrained_num_classes = len(pretrained_dict["classifier.6.weight"])
-        if num_classes < pretrained_num_classes:  # The output layer is subject to changes for different tasks
-            pretrained_dict["classifier.6.weight"] = pretrained_dict["classifier.6.weight"][:num_classes]
-            pretrained_dict["classifier.6.bias"] = pretrained_dict["classifier.6.bias"][:num_classes]
-        model.load_state_dict(pretrained_dict)
-
-        if not train_features:
-            model.features.requires_grad = False
-            for param in model.features.parameters():
+        if not self.train_features:
+            self._model.features.requires_grad = False
+            for param in self._model.features.parameters():
                 param.requires_grad = False
-    elif not train_features:
-        print("The model is assigned random init weights. All layers must be trained")
 
-    return model
+    def _process_state_dict(self, d):
+        if self.num_channels == 1:
+            d["features.0.weight"] = d["features.0.weight"].sum(dim=1, keepdim=True)
+        pretrained_num_classes = len(d["classifier.6.weight"])
+        if self.num_classes < pretrained_num_classes:
+            d["classifier.6.weight"] = d["classifier.6.weight"][:self.num_classes]
+            d["classifier.6.bias"] = d["classifier.6.bias"][:self.num_classes]
+
+        return d
+
+    def _get_state_dict(self):
+        if self.pretrained_path == "":
+            return load_url(model_urls['alexnet'], map_location=self.device)
+        else:
+            return torch.load(self.pretrained_path, map_location=self.device)
+
+    def _instantiate_model(self):
+        return AlexNet(self.num_channels, self.num_classes)
 
 
 # alias for model getter along with default args and kwargs
-get_model = get_alexnet
+builder_class = AlexNetBuilder
 model_args = ()
 model_kwargs = dict(
     num_channels=1,

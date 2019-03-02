@@ -15,6 +15,55 @@ class EmbedModule(nn.Module):
         raise NotImplementedError
 
 
+class EmbedModuleBuilder:
+    def __init__(self, num_channels, num_classes, pretrained_path=None, train_features=False, device="cpu"):
+        """
+        constructs a callable class, which, when called, returns a desired model
+        :param num_channels: number of channels in the input tensor
+        :param num_classes: number of labels in the classification problem
+        :param pretrained_path: path to state dicts saved on hard drive; if None, randomly initiate the model
+        :param train_features: whether to train the features layers (i.e., layers before MLP classifier)
+        :param device: device to use when loading model params in memory, default is cpu
+        """
+        self.num_channels = num_channels
+        self.num_classes = num_classes
+        self.pretrained_path = pretrained_path
+        self.train_features = train_features
+        self.device = device
+        self._model = None
+
+    def _instantiate_model(self) -> EmbedModule:
+        raise NotImplementedError
+
+    def _get_state_dict(self):
+        return torch.load(self.pretrained_path, map_location=self.device)
+
+    def _process_state_dict(self, d):
+        raise NotImplementedError
+
+    def _load_state_dict(self, d):
+        self._model: EmbedModule
+        self._model.load_state_dict(d)
+
+    def _set_trainable(self):
+        if self.pretrained_path is None and not self.train_features:
+            raise ValueError("Cannot skip training features when the model is not pretrained")
+
+    def _set_model(self):
+        self._instantiate_model()
+        if self.pretrained_path is not None:
+            pretrained = self._get_state_dict()
+            pretrained = self._process_state_dict(pretrained)
+            self._load_state_dict(pretrained)
+
+        self._set_trainable()
+
+    def __call__(self):
+        if self._model is None:
+            self._set_model()
+        return self._model
+
+
 def get_metrics_dict(labels: torch.Tensor, preds: torch.Tensor):
     acc = (preds == labels).float().mean()
     preds, labels = preds.cpu(), labels.cpu()

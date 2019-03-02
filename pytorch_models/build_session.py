@@ -11,18 +11,21 @@ class BaseSessionBuilder:
 
         self.importer = ReflexiveImporter(
             module_name=self.args.model,
-            var_list=["get_model", "model_args", "model_kwargs", "transformer"],
+            var_list=["builder_class", "model_args", "model_kwargs", "transformer"],
             package_name="pytorch_models",
         )
 
-        self.static_model_kwargs = dict(
-            pretrained_path=self.args.pretrained,
-        )
         self._dataset = None
         self._model = None
         self._device = None
         self._writer = None
         self._session = None
+        self._set_device()
+
+        self.static_model_kwargs = dict(
+            pretrained_path=self.args.pretrained,
+            device=self._device,
+        )
 
     def _set_dataset(self):
         if self._dataset is not None:
@@ -42,13 +45,15 @@ class BaseSessionBuilder:
 
         self._set_dataset()
 
-        get_model = self.importer["get_model"]  # type: callable
+        builder_class = self.importer["builder_class"]  # type: callable
         model_args = self.importer["model_args"]  # type: tuple
         model_kwargs = self.importer["model_kwargs"]  # type: dict
         model_kwargs.update(self.static_model_kwargs)
         model_kwargs.update(dict(num_classes=self._dataset.num_classes))
 
-        self._model = get_model(*model_args, **model_kwargs)
+        model_builder = builder_class(*model_args, **model_kwargs)
+        self._model = model_builder()
+
         if self.args.verbose:
             print("using model", self._model)
 
