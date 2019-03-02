@@ -47,12 +47,7 @@ class InferenceSession(ForwardSession, _SummarySession):
 
     def step(self, samples_batch, summarize_embedding=False, summarize_model=False):
         with torch.no_grad():  # register no gradients to speed up inference
-            features, labels, logits, metrics = ForwardSession.step(
-                self,
-                samples_batch,
-                report=True,
-                tag="infer",
-            )
+            features, labels, logits, metrics = ForwardSession.step(self, samples_batch, report=True, tag="infer")
 
         self._summarize_metrics(metrics)
 
