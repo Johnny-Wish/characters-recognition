@@ -2,14 +2,13 @@ import matplotlib.pyplot as plt
 
 
 class BaseVisualizer:
-    def __init__(self, default_save_path="default.png"):
+    def __init__(self):
         """
-        instantiate an instance of BaseVisualizer for plotting, showing, and saving images
-        :param default_save_path: default path to save plotted images
+        an instance of BaseVisualizer for plotting, showing, and saving images
         """
         self.fig = plt.figure()
         self.num = self.fig.number
-        self.default_save_path = default_save_path
+        self.default_save_path = "default"
         self.plotted = False
 
     def activate(self):
