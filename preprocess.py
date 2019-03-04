@@ -25,7 +25,7 @@ class Reshape:
         return array.reshape(*self.shape)
 
 
-class TransposeFlatten2D:
+class _TransposeFlatten2D:
     def __init__(self, n_rows, n_cols):
         transpose_flatten = Compose([
             Reshape(n_rows, n_cols),
@@ -48,10 +48,15 @@ class Subset:
         :param mapping: a dict that maps a label index to a string representation
         :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
-        if isinstance(y, np.ndarray) and len(y.shape) == 2:
-            self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+        if isinstance(y, np.ndarray):
+            if len(y.shape) >= 2:
+                self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+            else:
+                self._y = y
+        else:
+            self._y = np.array(y)
 
-        self._X = X if transformer is None else [transformer(sample) for sample in X]
+        self._X = X if transformer is None else np.stack([transformer(sample) for sample in X])
 
         self.transformer = transformer
         self._mapping = mapping
@@ -103,7 +108,7 @@ class Subset:
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
 
     def __getitem__(self, item):
-        return {"X": self._X[item], "y": self._y[item]}
+        return {"X": self._X[item], "y": self._y[item], "mapping": self._mapping}
 
     def __repr__(self):
         return "<Subset: X={}, y={}, mapping={}>".format(self._X, self._y, self.mapping)
@@ -115,7 +120,7 @@ class Dataset:
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
         :param folder: path to the folder containing data files
-        :param transformer: a callable instance that transforms the input features
+        :param transformer: a callable instance that transforms the input features, not including transposition
         :param transpose: whether to transpose the flattened representation, recommended for sprites visualization
         """
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
@@ -124,9 +129,9 @@ class Dataset:
 
         if transpose:
             if transformer is None:
-                transformer = TransposeFlatten2D(28, 28)
+                transformer = _TransposeFlatten2D(28, 28)
             else:
-                transformer = Compose([TransposeFlatten2D(28, 28), transformer])
+                transformer = Compose([_TransposeFlatten2D(28, 28), transformer])
 
         self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
         self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
