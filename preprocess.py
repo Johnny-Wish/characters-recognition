@@ -56,7 +56,7 @@ class Subset:
         else:
             self._y = np.array(y)
 
-        self._X = X if transformer is None else [transformer(sample) for sample in X]
+        self._X = X if transformer is None else np.stack([transformer(sample) for sample in X])
 
         self.transformer = transformer
         self._mapping = mapping
