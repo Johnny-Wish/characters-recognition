@@ -50,8 +50,8 @@ class Subset:
         """
         if isinstance(y, np.ndarray):
             if len(y.shape) >= 2:
-            self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
-        else:
+                self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+            else:
                 self._y = y
         else:
             self._y = np.array(y)
@@ -120,7 +120,7 @@ class Dataset:
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
         :param folder: path to the folder containing data files
-        :param transformer: a callable instance that transforms the input features
+        :param transformer: a callable instance that transforms the input features, not including transposition
         :param transpose: whether to transpose the flattened representation, recommended for sprites visualization
         """
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
