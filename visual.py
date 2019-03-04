@@ -157,4 +157,74 @@ class DataPointVisualizer(BaseVisualizer):
             **kwargs
         )
         plt.title(self.default_save_path.replace("-", " "))
+
+
+def get_rectangular_layout(n_items, n_rows=None, n_cols=None):
+    if n_items <= 0:
+        raise ValueError("n_items must be positive, got {}".format(n_items))
+
+    ceil = lambda x: int(np.ceil(x))
+
+    if n_rows is None and n_cols is None:
+        n_rows = ceil(np.sqrt(n_items))
+        n_cols = ceil(n_items / n_rows)
+    elif n_rows is None:
+        if n_cols > 0:
+            n_rows = ceil(n_items / n_cols)
+        else:
+            raise ValueError("n_cols must be positive, got {}".format(n_cols))
+    elif n_cols is None:
+        if n_rows > 0:
+            n_cols = ceil(n_items / n_rows)
+        else:
+            raise ValueError("n_rows must be positive, got {}".format(n_rows))
+    elif n_rows * n_cols < n_items:
+        raise ValueError("n_rows * n_cols < n_items : {} * {} < {}".format(n_rows, n_cols, n_items))
+
+    return n_rows, n_cols
+
+
+class DataChunkVisualizer(BaseVisualizer):
+    def __init__(self, data_chuck, n_rows=None, n_cols=None):
+        super(DataChunkVisualizer, self).__init__()
+
+        self.chunk = [parse_data_point(data_point) for data_point in data_chuck]
+        if not self.chunk:
+            raise ValueError("data chuck is empty")
+
+        self.default_save_path = "Data-chunk-of-size-{}".format(self.chunk_size)
+        self.n_rows, self.n_cols = get_rectangular_layout(self.chunk_size, n_rows, n_cols)
+
+    @property
+    def chunk_size(self):
+        return len(self.chunk)
+
+    def _plot(self, **kwargs):
+        self.set_width(self.n_cols)
+        self.set_height(self.n_rows + 0.25)
         plt.title(self.default_save_path.replace("-", " "))
+
+        for idx, data_point in enumerate(self.chunk):
+            plt.subplot(self.n_rows, self.n_cols, idx + 1)
+            data, label = data_point
+            self._subplot(data, label, **kwargs)
+
+        self.fig.suptitle(self.default_save_path.replace("-", " "))
+
+    def _subplot(self, data, label, **kwargs):
+        annot = kwargs.pop("annot", False)
+        cmap = kwargs.pop("cmap", "YlOrRd")
+        xticklabels = kwargs.pop("xtickslabels", False)
+        yticklabels = kwargs.pop("ytickslabels", False)
+        cbar = kwargs.pop("cbar", False)
+
+        sns.heatmap(
+            data,
+            annot=annot,
+            cmap=cmap,
+            xticklabels=xticklabels,
+            yticklabels=yticklabels,
+            cbar=cbar,
+            **kwargs
+        )
+        plt.title(label)
