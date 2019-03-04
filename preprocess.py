@@ -48,8 +48,13 @@ class Subset:
         :param mapping: a dict that maps a label index to a string representation
         :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
-        if isinstance(y, np.ndarray) and len(y.shape) == 2:
+        if isinstance(y, np.ndarray):
+            if len(y.shape) >= 2:
             self._y = y.flatten()  # the method np.ndarray.flatten() is stupid and doesn't update `self`
+        else:
+                self._y = y
+        else:
+            self._y = np.array(y)
 
         self._X = X if transformer is None else [transformer(sample) for sample in X]
 
