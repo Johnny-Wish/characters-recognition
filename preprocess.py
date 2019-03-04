@@ -108,7 +108,7 @@ class Subset:
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
 
     def __getitem__(self, item):
-        return {"X": self._X[item], "y": self._y[item]}
+        return {"X": self._X[item], "y": self._y[item], "mapping": self._mapping}
 
     def __repr__(self):
         return "<Subset: X={}, y={}, mapping={}>".format(self._X, self._y, self.mapping)
