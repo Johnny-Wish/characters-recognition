@@ -1,3 +1,5 @@
+import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 
@@ -93,3 +95,66 @@ class BaseVisualizer:
             path = self.default_save_path
 
         self.fig.savefig(path, **kwargs)
+
+
+def parse_data_point(data_point):
+    """
+    parse and obtain the value and label of a data point of type list, tuple, or dict
+    :param data_point: list or tuple of length 1, 2, or 3; or a dict with keys "X", "y", and "mapping"
+    :return: data, label
+    """
+    if isinstance(data_point, (tuple, list)):
+        if len(data_point) == 1:
+            data, label, mapping = data_point[0], None, None
+        elif len(data_point) == 2:
+            data, label = data_point
+            mapping = None
+        elif len(data_point) == 3:
+            data, label, mapping = data_point
+        else:
+            raise ValueError("data_point must have length 1, 2, or 3; got {}".format(len(data_point)))
+    elif isinstance(data_point, dict):
+        data = data_point.get("X", None)
+        label = data_point.get("y", None)
+        mapping = data_point.get("mapping", None)
+    else:
+        raise ValueError("data must be a list, tuple, or dict")
+
+    if not isinstance(data, np.ndarray):
+        raise ValueError("data is not an array, got {}".format(type(data)))
+
+    if isinstance(mapping, dict):
+        label = mapping[label]
+    elif callable(mapping):
+        label = mapping(label)
+    elif mapping is not None:
+        raise TypeError("Unrecognized label mapping {} of type {}", format(mapping, type(mapping)))
+
+    return data, label
+
+
+class DataPointVisualizer(BaseVisualizer):
+    def __init__(self, data_point):
+        super(DataPointVisualizer, self).__init__()
+
+        self.data, self.label = parse_data_point(data_point)
+        self.default_save_path = str("Data-point-of-label-{}".format(self.label))
+
+    def _plot(self, width=None, height=None, **kwargs):
+        self.set_width(width).set_height(height)
+        annot = kwargs.pop("annot", True)
+        fmt = kwargs.pop("fmt", "")
+        cmap = kwargs.pop("cmap", "YlOrRd")
+        annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
+        sns.heatmap(
+            self.data,
+            annot=annot,
+            fmt=fmt,
+            cmap=cmap,
+            annot_kws=annot_kws,
+            xticklabels=False,
+            yticklabels=False,
+            **kwargs
+        )
+        plt.title(self.default_save_path.replace("-", " "))
+        plt.title(self.default_save_path.replace("-", " "))
