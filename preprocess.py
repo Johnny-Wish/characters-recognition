@@ -25,7 +25,7 @@ class Reshape:
         return array.reshape(*self.shape)
 
 
-class TransposeFlatten2D:
+class _TransposeFlatten2D:
     def __init__(self, n_rows, n_cols):
         transpose_flatten = Compose([
             Reshape(n_rows, n_cols),
@@ -124,9 +124,9 @@ class Dataset:
 
         if transpose:
             if transformer is None:
-                transformer = TransposeFlatten2D(28, 28)
+                transformer = _TransposeFlatten2D(28, 28)
             else:
-                transformer = Compose([TransposeFlatten2D(28, 28), transformer])
+                transformer = Compose([_TransposeFlatten2D(28, 28), transformer])
 
         self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
         self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
