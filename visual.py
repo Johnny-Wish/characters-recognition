@@ -26,15 +26,15 @@ class BaseVisualizer:
         """
         self.activate()  # activate self.fig before doing the actually plotting
         if not self.plotted:
-            self._plot()
+            self._plot(**kwargs)
         elif force_replot:
-            self._plot()
+            self._plot(**kwargs)
         else:
             print("Plotting aborted: figure {} has been previously plotted".format(self.num))
         self.plotted = True
         return self
 
-    def _plot(self):
+    def _plot(self, **kwargs):
         """
         a method to be overridden for specific plotting purposes
         :return: None
