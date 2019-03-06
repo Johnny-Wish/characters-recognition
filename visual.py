@@ -146,14 +146,16 @@ class DataPointVisualizer(BaseVisualizer):
         fmt = kwargs.pop("fmt", "")
         cmap = kwargs.pop("cmap", "YlOrRd")
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
+        xticklabels = kwargs.pop("xticklabels", False)
+        yticklabels = kwargs.pop("yticklabels", False)
         sns.heatmap(
             self.data,
             annot=annot,
             fmt=fmt,
             cmap=cmap,
             annot_kws=annot_kws,
-            xticklabels=False,
-            yticklabels=False,
+            xticklabels=xticklabels,
+            yticklabels=yticklabels,
             **kwargs
         )
         plt.title(self.default_save_path.replace("-", " "))
