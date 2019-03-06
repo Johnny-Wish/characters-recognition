@@ -60,6 +60,8 @@ class Subset:
         self._X = X if transformer is None else np.stack([transformer(sample) for sample in X])
 
         self.transformer = transformer
+        if mapping is None:
+            mapping = str
         self._mapping = mapping
         self._num_classes = len(np.unique(self._y))
         if num_classes:
