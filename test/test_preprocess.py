@@ -4,8 +4,7 @@ from preprocess import Dataset, Subset
 
 
 class TestSubset(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestSubset, self).__init__(*args, **kwargs)
+    def setUp(self):
         self.n_samples = 1000
         self.n_dim = 15
         X = np.random.rand(self.n_samples, self.n_dim)
@@ -71,8 +70,8 @@ class TestSubset(unittest.TestCase):
 
 
 class TestDataset(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestDataset, self).__init__(*args, **kwargs)
+    def setUp(self):
+        self.dataset = Dataset(folder="../dataset")
         self.dataset = Dataset(folder="../dataset", label_order="shift")
         self.n_train = len(self.dataset.train)
         self.n_test = len(self.dataset.test)
