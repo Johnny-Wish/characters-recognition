@@ -198,6 +198,9 @@ class Dataset:
         self._test_size = len(self._accessible_test)
         return self
 
+    def filter(self, labels, recount_labels=True):
+        return self.filter_train(labels, recount_labels).filter_test(labels, recount_labels)
+
     @property
     def num_classes(self):
         return self._num_classes
