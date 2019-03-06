@@ -7,12 +7,29 @@ class TestSubset(unittest.TestCase):
     def setUp(self):
         self.n_samples = 1000
         self.n_dim = 15
+        self.n_classes = 62
         X = np.random.rand(self.n_samples, self.n_dim)
-        y = np.random.rand(self.n_samples)
-        self.subset = Subset(X, y)
+        y = np.random.randint(0, self.n_classes, self.n_samples)
+        self.subset = Subset(X, y, mapping=lambda x: x)
 
     def test_must_pass(self):
         self.assertTrue(True)
+
+    def test_num_classes(self):
+        self.assertEqual(self.n_classes, self.subset.num_classes)
+
+    def test_filter(self):
+        filtered_subset = self.subset.filtered()
+        self.assertEqual(self.n_classes, filtered_subset.num_classes)
+
+        labels = list(range(10))
+        filtered_subset = self.subset.filtered(labels)
+        self.assertEqual(len(labels), filtered_subset.num_classes)
+        all_labels = set(lab for lab in filtered_subset.y)
+        self.assertEqual(set(labels), all_labels)
+
+        filtered_subset = self.subset.filtered(3)
+        self.assertEqual(1, filtered_subset.num_classes)
 
     def test_equal_length(self):
         self.assertEqual(len(self.subset.X), len(self.subset.y))
