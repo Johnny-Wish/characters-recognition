@@ -146,14 +146,16 @@ class DataPointVisualizer(BaseVisualizer):
         fmt = kwargs.pop("fmt", "")
         cmap = kwargs.pop("cmap", "YlOrRd")
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
+        xticklabels = kwargs.pop("xticklabels", False)
+        yticklabels = kwargs.pop("yticklabels", False)
         sns.heatmap(
             self.data,
             annot=annot,
             fmt=fmt,
             cmap=cmap,
             annot_kws=annot_kws,
-            xticklabels=False,
-            yticklabels=False,
+            xticklabels=xticklabels,
+            yticklabels=yticklabels,
             **kwargs
         )
         plt.title(self.default_save_path.replace("-", " "))
@@ -202,14 +204,12 @@ class DataChunkVisualizer(BaseVisualizer):
     def _plot(self, **kwargs):
         self.set_width(self.n_cols)
         self.set_height(self.n_rows + 0.25)
-        plt.title(self.default_save_path.replace("-", " "))
+        self.fig.suptitle(self.default_save_path.replace("-", " "))
 
         for idx, data_point in enumerate(self.chunk):
             plt.subplot(self.n_rows, self.n_cols, idx + 1)
             data, label = data_point
             self._subplot(data, label, **kwargs)
-
-        self.fig.suptitle(self.default_save_path.replace("-", " "))
 
     def _subplot(self, data, label, **kwargs):
         annot = kwargs.pop("annot", False)

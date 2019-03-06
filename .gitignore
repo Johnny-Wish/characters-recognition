@@ -11,3 +11,4 @@ test/.cache
 .cache
 *ipynb
 .ipynb_checkpoints/
+test/view_image.py
