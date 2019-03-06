@@ -1,6 +1,7 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 
 class BaseVisualizer:
@@ -228,3 +229,52 @@ class DataChunkVisualizer(BaseVisualizer):
             **kwargs
         )
         plt.title(label)
+
+
+class ConfusionMatrixVisualizer(BaseVisualizer):
+    def __init__(self, y_true=None, y_pred=None, labels=None, matrix=None, n_samples=None):
+        super(ConfusionMatrixVisualizer, self).__init__()
+
+        if y_true is None and y_pred is not None:
+            raise ValueError("y_true and y_pred must be specified together")
+        elif y_true is not None and y_pred is None:
+            raise ValueError("y_true and y_pred must be specified together")
+        elif y_true is None and y_pred is None and matrix is None:
+            raise ValueError("matrix must be specified or y_true, y_pred must be specified")
+        elif y_true is not None and y_pred is not None and matrix is not None:
+            raise ValueError("matrix, and y_true/pred cannot be specified together")
+
+        self.n_samples = n_samples
+        if matrix is None:
+            if len(y_true) != len(y_pred):
+                raise ValueError("y_true and y_perd differ in shape {} != {}".format(len(y_true), len(y_pred)))
+            self.n_samples = len(y_true)
+            self.matrix = confusion_matrix(y_true, y_pred, labels=labels)
+        else:
+            self.matrix = matrix
+        self.n_classes = self.matrix.shape[0]
+
+        self.default_save_path = "Confusion-Matrix-with-{}-samples-from-{}-classes".format(self.n_samples,
+                                                                                           self.n_classes)
+
+    def _plot(self, width=6, height=6, **kwargs):
+        self.set_width(width).set_height(height)
+
+        annot = kwargs.pop("annot", True)
+        fmt = kwargs.pop("fmt", ".2g")
+        cmap = kwargs.pop("cmap", "YlOrRd")
+        annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
+        xticklabels = kwargs.pop("xticklabels", True)
+        yticklabels = kwargs.pop("yticklabels", True)
+
+        sns.heatmap(
+            self.matrix,
+            cmap=cmap,
+            annot=annot,
+            fmt=fmt,
+            annot_kws=annot_kws,
+            xticklabels=xticklabels,
+            yticklabels=yticklabels
+        )
+
+        self.fig.suptitle(self.default_save_path.replace("-", " "))
