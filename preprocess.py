@@ -193,31 +193,45 @@ class Dataset:
 
         self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
         self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
-        self._accessible_train = self._train
-        self._train_size = len(self._train)
         self._test = Subset(X=test[0], y=test[1], mapping=self._mapping, transformer=transformer)
-        self._accessible_test = self._test
-        self._test_size = len(self._test)
-        self._num_classes = self._train.num_classes
+        self._accessible_train = None  # type: Subset
+        self._accessible_test = None  # type: Subset
+        self.reset()
+
+    def reset_train(self, shuffle=False):
+        if shuffle:
+            self._accessible_train = self._train.sampled(1.0)
+        else:
+            self._accessible_train = self._train.copy()
+        return self
+
+    def reset_test(self, shuffle=False):
+        if shuffle:
+            self._accessible_test = self._test.sampled(1.0)
+        else:
+            self._accessible_test = self._test.copy()
+        return self
+
+    def reset(self, shuffle_train=False, shuffle_test=False):
+        return self.reset_train(shuffle=shuffle_train).reset_test(shuffle=shuffle_test)
 
     def sample_train(self, size=0.1):
-        self._accessible_train = self._train.sampled(size)
-        self._train_size = len(self._accessible_train)
+        self._accessible_train = self._accessible_train.sampled(size)
         return self
 
     def sample_test(self, size=0.1):
-        self._accessible_test = self._test.sampled(size)
-        self._test_size = len(self._accessible_test)
+        self._accessible_test = self._accessible_test.sampled(size)
         return self
 
+    def sample(self, train_size=0.1, test_size=0.1):
+        return self.sample_train(size=train_size).sample_test(size=test_size)
+
     def filter_train(self, labels, recount_labels=True):
-        self._accessible_train = self._train.filtered(labels, recount_labels=recount_labels)
-        self._train_size = len(self._accessible_train)
+        self._accessible_train = self._accessible_train.filtered(labels, recount_labels=recount_labels)
         return self
 
     def filter_test(self, labels, recount_labels=True):
-        self._accessible_test = self._test.filtered(labels, recount_labels=recount_labels)
-        self._test_size = len(self._accessible_test)
+        self._accessible_test = self._accessible_test.filtered(labels, recount_labels=recount_labels)
         return self
 
     def filter(self, labels, recount_labels=True):
@@ -225,15 +239,15 @@ class Dataset:
 
     @property
     def num_classes(self):
-        return self._num_classes
+        return self._train.num_classes
 
     @property
     def train_size(self):
-        return self._train_size
+        return len(self._accessible_train)
 
     @property
     def test_size(self):
-        return self._test_size
+        return len(self._accessible_test)
 
     @property
     def train(self):
