@@ -150,6 +150,7 @@ class DataPointVisualizer(BaseVisualizer):
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
         xticklabels = kwargs.pop("xticklabels", False)
         yticklabels = kwargs.pop("yticklabels", False)
+        square = kwargs.pop("square", True)
         sns.heatmap(
             self.data,
             annot=annot,
@@ -158,6 +159,7 @@ class DataPointVisualizer(BaseVisualizer):
             annot_kws=annot_kws,
             xticklabels=xticklabels,
             yticklabels=yticklabels,
+            square=square,
             **kwargs
         )
         plt.title(self.default_save_path.replace("-", " "))
@@ -218,6 +220,7 @@ class DataChunkVisualizer(BaseVisualizer):
         cmap = kwargs.pop("cmap", "YlOrRd")
         xticklabels = kwargs.pop("xtickslabels", False)
         yticklabels = kwargs.pop("ytickslabels", False)
+        square = kwargs.pop("square", True)
         cbar = kwargs.pop("cbar", False)
 
         sns.heatmap(
@@ -227,6 +230,7 @@ class DataChunkVisualizer(BaseVisualizer):
             xticklabels=xticklabels,
             yticklabels=yticklabels,
             cbar=cbar,
+            square=square,
             **kwargs
         )
         plt.title(label)
@@ -267,6 +271,7 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
         xticklabels = kwargs.pop("xticklabels", True)
         yticklabels = kwargs.pop("yticklabels", True)
+        square = kwargs.pop("square", True)
 
         sns.heatmap(
             self.matrix,
@@ -276,6 +281,7 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
             annot_kws=annot_kws,
             xticklabels=xticklabels,
             yticklabels=yticklabels
+            square=square,
         )
 
         self.fig.suptitle(self.default_save_path.replace("-", " "))
