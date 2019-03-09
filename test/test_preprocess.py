@@ -4,16 +4,32 @@ from preprocess import Dataset, Subset
 
 
 class TestSubset(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestSubset, self).__init__(*args, **kwargs)
+    def setUp(self):
         self.n_samples = 1000
         self.n_dim = 15
+        self.n_classes = 62
         X = np.random.rand(self.n_samples, self.n_dim)
-        y = np.random.rand(self.n_samples)
-        self.subset = Subset(X, y)
+        y = np.random.randint(0, self.n_classes, self.n_samples)
+        self.subset = Subset(X, y, mapping=lambda x: x)
 
     def test_must_pass(self):
         self.assertTrue(True)
+
+    def test_num_classes(self):
+        self.assertEqual(self.n_classes, self.subset.num_classes)
+
+    def test_filter(self):
+        filtered_subset = self.subset.filtered()
+        self.assertEqual(self.n_classes, filtered_subset.num_classes)
+
+        labels = list(range(10))
+        filtered_subset = self.subset.filtered(labels)
+        self.assertEqual(len(labels), filtered_subset.num_classes)
+        all_labels = set(lab for lab in filtered_subset.y)
+        self.assertEqual(set(labels), all_labels)
+
+        filtered_subset = self.subset.filtered(3)
+        self.assertEqual(1, filtered_subset.num_classes)
 
     def test_equal_length(self):
         self.assertEqual(len(self.subset.X), len(self.subset.y))
@@ -35,7 +51,9 @@ class TestSubset(unittest.TestCase):
         self.assertIsInstance(d, dict)
         self.assertIn("X", d)
         self.assertIn("y", d)
-        self.assertEqual(len(d), 2)
+        self.assertIn("mapping", d)
+        self.assertIn("num_classes", d)
+        self.assertEqual(len(d), 4)
 
     def test_from_dict(self):
         d = {
@@ -48,7 +66,7 @@ class TestSubset(unittest.TestCase):
         self.assertTrue((d['y'] == d2['y']).all())
 
     def test_raise_error(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             Subset(
                 np.random.rand(self.n_samples + 1, self.n_dim),
                 np.random.rand(self.n_samples)
@@ -71,9 +89,8 @@ class TestSubset(unittest.TestCase):
 
 
 class TestDataset(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(TestDataset, self).__init__(*args, **kwargs)
-        self.dataset = Dataset(folder="../dataset", label_order="shift")
+    def setUp(self):
+        self.dataset = Dataset(folder="../dataset")
         self.n_train = len(self.dataset.train)
         self.n_test = len(self.dataset.test)
 
@@ -87,7 +104,7 @@ class TestDataset(unittest.TestCase):
         self.assertEqual(len(self.dataset.test.y.shape), 1)
 
     def test_type(self):
-        self.assertIsInstance(self.dataset.mapping, np.ndarray)
+        self.assertIsInstance(self.dataset.mapping, dict)
         self.assertIsInstance(self.dataset.train.X, np.ndarray)
         self.assertIsInstance(self.dataset.train.y, np.ndarray)
         self.assertIsInstance(self.dataset.test.X, np.ndarray)

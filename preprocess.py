@@ -40,12 +40,13 @@ class _TransposeFlatten2D:
 
 
 class Subset:
-    def __init__(self, X, y, mapping, transformer=None):
+    def __init__(self, X, y, mapping=None, num_classes=None, transformer=None):
         """
         An object simulating the training set / testing test / validation set of a super dataset
         :param X: A np.ndarray whose .shape[0] is the n_samples
         :param y: A 1-dim/2-dim np.ndarray, n_samples or n_samples x 1
         :param mapping: a dict that maps a label index to a string representation
+        :param num_classes: number of labels of the Subset; computed automatically by default
         :param transformer: a callable instance that transforms the input X, (and leaves y untouched)
         """
         if isinstance(y, np.ndarray):
@@ -59,10 +60,19 @@ class Subset:
         self._X = X if transformer is None else np.stack([transformer(sample) for sample in X])
 
         self.transformer = transformer
+        if mapping is None:
+            mapping = str
         self._mapping = mapping
+        self._num_classes = len(np.unique(self._y))
+        if num_classes:
+            self._num_classes = max(self._num_classes, num_classes)
 
         if len(self._X) != len(self._y):
             raise ValueError("X and y differ in length {} != {}".format(len(self._X), len(self._y)))
+
+    @property
+    def num_classes(self):
+        return self._num_classes
 
     @property
     def X(self):
@@ -77,7 +87,7 @@ class Subset:
         return self._mapping
 
     def __dict__(self):
-        return {"X": self._X, "y": self._y}
+        return {"X": self._X, "y": self._y, "mapping": self._mapping, "num_classes": self._num_classes}
 
     @classmethod
     def from_dict(cls, d):
@@ -103,6 +113,32 @@ class Subset:
             sample = int(total * min(size, 1.0))
         index = np.random.choice(np.arange(total), sample, replace=False)
         return Subset(self._X[index], self._y[index], self._mapping)
+
+    def filtered(self, labels=None, recount_labels=True):
+        if labels is None:
+            print("No label specified, retuning all data")
+            return self.copy()
+
+        if isinstance(labels, (list, tuple, set, np.ndarray)):
+            id_filter = np.sum((self._y == label).astype(dtype=np.uint) for label in labels)
+            id_filter = id_filter.astype(np.bool)
+        else:
+            id_filter = (self._y == labels)
+
+        return Subset(
+            X=self._X[id_filter],
+            y=self._y[id_filter],
+            mapping=self._mapping,
+            num_classes=None if recount_labels else self._num_classes,
+        )
+
+    def copy(self):
+        return Subset(
+            X=self._X,
+            y=self._y,
+            mapping=self._mapping,
+            num_classes=self._num_classes,
+        )
 
     def __len__(self):
         return min(len(self._X), len(self._y))  # in case X and y differ in length, which should not happen
@@ -135,22 +171,35 @@ class Dataset:
 
         self._mapping = {key: "".join(map(chr, values)) for key, *values, in mapping}
         self._train = Subset(X=train[0], y=train[1], mapping=self._mapping, transformer=transformer)
-        self._sampled_train = self._train
+        self._accessible_train = self._train
         self._train_size = len(self._train)
         self._test = Subset(X=test[0], y=test[1], mapping=self._mapping, transformer=transformer)
-        self._sampled_test = self._test
+        self._accessible_test = self._test
         self._test_size = len(self._test)
-        self._num_classes = len(np.unique(self.train.y))
+        self._num_classes = self._train.num_classes
 
     def sample_train(self, size=0.1):
-        self._sampled_train = self._train.sampled(size)
-        self._train_size = len(self._sampled_train)
+        self._accessible_train = self._train.sampled(size)
+        self._train_size = len(self._accessible_train)
         return self
 
     def sample_test(self, size=0.1):
-        self._sampled_test = self._test.sampled(size)
-        self._test_size = len(self._sampled_test)
+        self._accessible_test = self._test.sampled(size)
+        self._test_size = len(self._accessible_test)
         return self
+
+    def filter_train(self, labels, recount_labels=True):
+        self._accessible_train = self._train.filtered(labels, recount_labels=recount_labels)
+        self._train_size = len(self._accessible_train)
+        return self
+
+    def filter_test(self, labels, recount_labels=True):
+        self._accessible_test = self._test.filtered(labels, recount_labels=recount_labels)
+        self._test_size = len(self._accessible_test)
+        return self
+
+    def filter(self, labels, recount_labels=True):
+        return self.filter_train(labels, recount_labels).filter_test(labels, recount_labels)
 
     @property
     def num_classes(self):
@@ -166,11 +215,11 @@ class Dataset:
 
     @property
     def train(self):
-        return self._sampled_train
+        return self._accessible_train
 
     @property
     def test(self):
-        return self._sampled_test
+        return self._accessible_test
 
     @property
     def mapping(self):
