@@ -64,8 +64,8 @@ class TorchTrainParser(TorchSessionParser):
         self.add_argument("--param_summarize_period", default=25, type=int, help="how frequently to summarize "
                                                                                  "parameter distributions, "
                                                                                  "in number  of steps (mini-batches)")
-        self.add_argument("--max_steps", default=1500, type=int, help="max number of steps to run before training is "
-                                                                      "terminated")
+        self.add_argument("--max_steps", default=-1, type=int, help="max number of steps to run before training is "
+                                                                    "terminated, disabled by default")
         self.add_argument("--train_features", action="store_true", help="to train the feature layers (disabled by "
                                                                         "default)")
         self.add_argument("--checkpoint", action="store_true", help="do checkpoint for the model (disabled by default)")
