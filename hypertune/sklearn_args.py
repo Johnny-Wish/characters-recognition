@@ -1,6 +1,6 @@
-from args import BaseModelParser, BaseModelArgs
-from args import BaseDatasetParser, BaseDatasetArgs
-from args import BaseSessionParser, BaseSessionArgs
+from cli import BaseModelParser, BaseModelArgs
+from cli import BaseDatasetParser, BaseDatasetArgs
+from cli import BaseSessionParser, BaseSessionArgs
 
 
 class SklearnModelParser(BaseModelParser):

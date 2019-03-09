@@ -1,6 +1,9 @@
-from args import BaseDatasetArgs, BaseDatasetParser
-from args import BaseModelArgs, BaseModelParser
-from args import BaseSessionArgs, BaseSessionParser
+
+
+
+from cli import BaseDatasetArgs, BaseDatasetParser
+from cli import BaseModelArgs, BaseModelParser
+from cli import BaseSessionArgs, BaseSessionParser
 
 
 class TorchDatasetParser(BaseDatasetParser):
