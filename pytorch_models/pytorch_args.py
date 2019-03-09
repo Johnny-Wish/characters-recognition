@@ -69,6 +69,7 @@ class TorchTrainParser(TorchSessionParser):
         self.add_argument("--train_features", action="store_true", help="to train the feature layers (disabled by "
                                                                         "default)")
         self.add_argument("--checkpoint", action="store_true", help="do checkpoint for the model (disabled by default)")
+        self.add_argument("--n_epochs", default=5, type=int, help="number of epochs to run")
         return self
 
 
@@ -88,6 +89,10 @@ class TorchTrainArgs(TorchSessionArgs):
     @property
     def checkpoint(self):
         return self.args.checkpoint
+
+    @property
+    def n_epochs(self):
+        return self.args.n_epochs
 
 
 class TorchInferParser(TorchSessionParser):

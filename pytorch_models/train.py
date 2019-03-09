@@ -134,4 +134,6 @@ if __name__ == '__main__':
     session_builder = TrainingSessionBuilder(args)
     session = session_builder()
 
-    session.epoch(checkpoint=args.checkpoint)
+    for epoch in range(args.n_epochs):
+        print("staring epoch {}".format(epoch + 1))
+        session.epoch(checkpoint=args.checkpoint)
