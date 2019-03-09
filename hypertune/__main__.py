@@ -10,6 +10,9 @@ if __name__ == '__main__':
     args = SklearnSessionArgs(parser)
 
     dataset = Dataset(args.datafile, args.dataroot)
+    dataset.filter(args.labels)
+    if args.balance:
+        dataset.balance()
     dataset.sample(args.size)
 
     importer = ReflexiveImporter(
