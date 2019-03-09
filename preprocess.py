@@ -104,14 +104,17 @@ class Subset:
     def sampled(self, size=1.0):
         """
         return a new Subset instance which is contained in `self`
-        :param size: float or int, size of the new instance
+        :param size: float, int, or None, size of the new instance
             if float. construed as the ratio to the original instance
             if size, construed as the number of elements in the returned instance
+            if None, return a copy of self
             size of new instance will be ceiled if it exceeds the maximum
         :return: a new Subset instance
         """
         total = len(self)
-        if isinstance(size, (int, np.integer)):
+        if size is None:
+            return self.copy()
+        elif isinstance(size, (int, np.integer)):
             sample = min(total, size)
         else:
             sample = int(total * min(size, 1.0))
