@@ -8,6 +8,8 @@ from reflexive_import import ReflexiveImporter
 class BaseSessionBuilder:
     def __init__(self, args: TorchSessionArgs):
         self.args = args
+        if self.args.verbose:
+            print(self.args)
 
         self.importer = ReflexiveImporter(
             module_name=self.args.model,
