@@ -9,7 +9,12 @@ if __name__ == '__main__':
     parser = SklearnSessionParser()
     args = SklearnSessionArgs(parser)
 
-    dataset = Dataset(args.datafile, args.dataroot).sample_train(args.train_rate).sample_test(args.test_rate)
+    dataset = Dataset(args.datafile, args.dataroot)
+    dataset.filter(args.labels)
+    if args.balance:
+        dataset.balance()
+    dataset.sample(args.size)
+
     importer = ReflexiveImporter(
         module_name=args.model,
         var_list=["model", "parameter_distribution"],

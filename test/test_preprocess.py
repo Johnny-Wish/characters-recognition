@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from preprocess import Dataset, Subset
+from collections import Counter
 
 
 class TestSubset(unittest.TestCase):
@@ -87,6 +88,15 @@ class TestSubset(unittest.TestCase):
         self.assertEqual(len(self.subset.sampled(1000000)), 1000)
         self.assertEqual(len(self.subset.sampled(1000)), 1000)
 
+    def test_label_count(self):
+        self.assertDictEqual(Counter(self.subset.y), self.subset.y_counts)
+
+    def test_balanced(self):
+        n_samples_per_label = min(self.subset.y_counts[y] for y in self.subset.y_counts)
+        balanced = self.subset.balanced()
+        for y in balanced.y_counts:
+            self.assertEqual(n_samples_per_label, balanced.y_counts[y])
+
 
 class TestDataset(unittest.TestCase):
     def setUp(self):
@@ -112,33 +122,33 @@ class TestDataset(unittest.TestCase):
 
     def test_sample_train(self):
         self.dataset.sample_train(0.5)
-        self.assertEqual(len(self.dataset.train), int(self.n_train * 0.5))
-        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
+        self.assertAlmostEqual(len(self.dataset.train), self.n_train * 0.5, delta=1)
+        self.dataset.reset_train()
 
         self.dataset.sample_test(0.3)
-        self.assertEqual(len(self.dataset.test), int(self.n_test * 0.3))
-        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
+        self.assertAlmostEqual(len(self.dataset.test), self.n_test * 0.3, delta=1)
+        self.dataset.reset_test()
 
-        self.dataset.sample_train(0.2)
-        self.assertEqual(len(self.dataset.train), int(self.n_train * 0.2))
-        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
+        self.dataset.sample_train(0.2).sample_train(0.5)
+        self.assertAlmostEqual(len(self.dataset.train), self.n_train * 0.2 * 0.5, delta=1)
+        self.dataset.reset_train()
 
-        self.dataset.sample_test(1.0)
-        self.assertEqual(len(self.dataset.test), self.n_test)
-        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
+        self.dataset.sample_test(0.9).sample_test(0.9)
+        self.assertAlmostEqual(len(self.dataset.test), self.n_test * 0.9 * 0.9, delta=1)
+        self.dataset.reset_test()
 
         self.dataset.sample_test(3.0)
-        self.assertEqual(len(self.dataset.test), self.n_test)
-        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
+        self.assertAlmostEqual(len(self.dataset.test), self.n_test, delta=1)
+        self.dataset.reset_test()
 
         self.dataset.sample_train(1000)
-        self.assertEqual(len(self.dataset.train), 1000)
-        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
+        self.assertAlmostEqual(len(self.dataset.train), 1000, delta=1)
+        self.dataset.reset_train()
 
         self.dataset.sample_train(10000000000)
-        self.assertEqual(len(self.dataset.train), self.n_train)
-        self.assertEqual(len(self.dataset.train), self.dataset.train_size)
+        self.assertAlmostEqual(len(self.dataset.train), self.n_train, delta=1)
+        self.dataset.reset_train()
 
         self.dataset.sample_test(3534)
-        self.assertEqual(len(self.dataset.test), 3534)
-        self.assertEqual(len(self.dataset.test), self.dataset.test_size)
+        self.assertAlmostEqual(len(self.dataset.test), 3534, delta=1)
+        self.dataset.reset_test()

@@ -8,6 +8,8 @@ from reflexive_import import ReflexiveImporter
 class BaseSessionBuilder:
     def __init__(self, args: TorchSessionArgs):
         self.args = args
+        if self.args.verbose:
+            print(self.args)
 
         self.importer = ReflexiveImporter(
             module_name=self.args.model,
@@ -36,8 +38,19 @@ class BaseSessionBuilder:
             folder=self.args.dataroot,
             transformer=self.importer["transformer"]
         )
+
         if self.args.verbose:
-            print("dataset loaded")
+            print("dataset loaded, {} classes in total".format(self._dataset.num_classes))
+            print("train_shape = {}, test_shape = {}".format(self._dataset.train.X.shape, self._dataset.test.X.shape))
+
+        self._dataset.filter(labels=self.args.labels)
+        if self.args.balance:
+            self._dataset.balance()
+        self._dataset.sample(train_size=self.args.size, test_size=self.args.size)
+
+        if self.args.verbose:
+            print("dataset downsampled, {} classes in total".format(self._dataset.num_classes))
+            print("train_shape = {}, test_shape = {}".format(self._dataset.train.X.shape, self._dataset.test.X.shape))
 
     def _set_model(self):
         if self._model is not None:

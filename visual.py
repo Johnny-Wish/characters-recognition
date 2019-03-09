@@ -1,6 +1,7 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 
 class BaseVisualizer:
@@ -78,10 +79,11 @@ class BaseVisualizer:
 
     def show(self, warn=True):
         """
-        shows the figure, must be run before another fig is shown
+        shows the figure, runs self.plot() automatically
         :param warn: refer to matplotlib.pyplot.figure.Figure.show()
         :return: None
         """
+        self.plot(force_replot=False)
         self.fig.show(warn=warn)
 
     def save(self, path=None, **kwargs):
@@ -148,6 +150,7 @@ class DataPointVisualizer(BaseVisualizer):
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
         xticklabels = kwargs.pop("xticklabels", False)
         yticklabels = kwargs.pop("yticklabels", False)
+        square = kwargs.pop("square", True)
         sns.heatmap(
             self.data,
             annot=annot,
@@ -156,6 +159,7 @@ class DataPointVisualizer(BaseVisualizer):
             annot_kws=annot_kws,
             xticklabels=xticklabels,
             yticklabels=yticklabels,
+            square=square,
             **kwargs
         )
         plt.title(self.default_save_path.replace("-", " "))
@@ -216,6 +220,7 @@ class DataChunkVisualizer(BaseVisualizer):
         cmap = kwargs.pop("cmap", "YlOrRd")
         xticklabels = kwargs.pop("xtickslabels", False)
         yticklabels = kwargs.pop("ytickslabels", False)
+        square = kwargs.pop("square", True)
         cbar = kwargs.pop("cbar", False)
 
         sns.heatmap(
@@ -225,6 +230,60 @@ class DataChunkVisualizer(BaseVisualizer):
             xticklabels=xticklabels,
             yticklabels=yticklabels,
             cbar=cbar,
+            square=square,
             **kwargs
         )
         plt.title(label)
+
+
+class ConfusionMatrixVisualizer(BaseVisualizer):
+    def __init__(self, y_true=None, y_pred=None, labels=None, matrix=None, n_samples=None):
+        super(ConfusionMatrixVisualizer, self).__init__()
+
+        if y_true is None and y_pred is not None:
+            raise ValueError("y_true and y_pred must be specified both or neither")
+        elif y_true is not None and y_pred is None:
+            raise ValueError("y_true and y_pred must be specified both or neither")
+        elif y_true is None and y_pred is None and matrix is None:
+            raise ValueError("matrix must be specified or y_true and y_pred must be specified")
+        elif y_true is not None and y_pred is not None and matrix is not None:
+            raise ValueError("matrix, and y_true/pred cannot be specified together")
+
+        self.n_samples = n_samples
+        if matrix is None:
+            self.n_samples = len(y_true)
+            self.matrix = confusion_matrix(y_true, y_pred, labels=labels)
+        else:
+            self.matrix = matrix
+        self.n_classes = self.matrix.shape[0]
+
+        self.default_save_path = "Confusion-Matrix-with-{}-samples-from-{}-classes".format(self.n_samples,
+                                                                                           self.n_classes)
+
+    def _plot(self, width=15, height=15, **kwargs):
+        self.set_width(width).set_height(height)
+        self.fig.suptitle(self.default_save_path.replace("-", " "), fontsize=30)
+
+        annot = kwargs.pop("annot", False)
+        fmt = kwargs.pop("fmt", ".2g")
+        cmap = kwargs.pop("cmap", "Blues")
+        annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
+        xticklabels = kwargs.pop("xticklabels", False)
+        yticklabels = kwargs.pop("yticklabels", False)
+        square = kwargs.pop("square", True)
+
+        sns.heatmap(
+            self.matrix,
+            cmap=cmap,
+            annot=annot,
+            fmt=fmt,
+            annot_kws=annot_kws,
+            xticklabels=xticklabels,
+            yticklabels=yticklabels,
+            square=square,
+            **kwargs
+        )
+
+        plt.xlabel('Predicted label', fontsize=30)
+        plt.ylabel('True label', fontsize=30)
+        plt.tight_layout()
