@@ -241,18 +241,16 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
         super(ConfusionMatrixVisualizer, self).__init__()
 
         if y_true is None and y_pred is not None:
-            raise ValueError("y_true and y_pred must be specified together")
+            raise ValueError("y_true and y_pred must be specified both or neither")
         elif y_true is not None and y_pred is None:
-            raise ValueError("y_true and y_pred must be specified together")
+            raise ValueError("y_true and y_pred must be specified both or neither")
         elif y_true is None and y_pred is None and matrix is None:
-            raise ValueError("matrix must be specified or y_true, y_pred must be specified")
+            raise ValueError("matrix must be specified or y_true and y_pred must be specified")
         elif y_true is not None and y_pred is not None and matrix is not None:
             raise ValueError("matrix, and y_true/pred cannot be specified together")
 
         self.n_samples = n_samples
         if matrix is None:
-            if len(y_true) != len(y_pred):
-                raise ValueError("y_true and y_perd differ in shape {} != {}".format(len(y_true), len(y_pred)))
             self.n_samples = len(y_true)
             self.matrix = confusion_matrix(y_true, y_pred, labels=labels)
         else:
