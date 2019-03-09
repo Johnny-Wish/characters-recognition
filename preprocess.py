@@ -13,6 +13,8 @@ This file contains pre-processing tools of the dataset, assumed to be of a stand
 
 import os
 import numpy as np
+from collections import Counter
+from itertools import chain
 from scipy.io import loadmat
 from torchvision.transforms import Compose
 
@@ -56,6 +58,8 @@ class Subset:
                 self._y = y
         else:
             self._y = np.array(y)
+
+        self.y_counts = Counter(self._y)
 
         self._X = X if transformer is None else np.stack([transformer(sample) for sample in X])
 
@@ -130,6 +134,24 @@ class Subset:
             y=self._y[id_filter],
             mapping=self._mapping,
             num_classes=None if recount_labels else self._num_classes,
+        )
+
+    def balanced(self, sample_count=None):
+        if sample_count is None:
+            sample_count = min(self.y_counts[y] for y in self.y_counts)
+
+        indices = {y: [] for y in self.y_counts}
+        for idx, y in enumerate(self._y):
+            indices[y].append(idx)
+
+        id_filter = chain.from_iterable(np.random.choice(indices[y], sample_count) for y in indices)
+        id_filter = np.array(list(id_filter))
+
+        return Subset(
+            X=self._X[id_filter],
+            y=self._y[id_filter],
+            mapping=self._mapping,
+            num_classes=None,
         )
 
     def copy(self):
