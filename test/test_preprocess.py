@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from preprocess import Dataset, Subset
+from collections import Counter
 
 
 class TestSubset(unittest.TestCase):
@@ -86,6 +87,15 @@ class TestSubset(unittest.TestCase):
         self.assertEqual(len(self.subset.sampled(300)), 300)
         self.assertEqual(len(self.subset.sampled(1000000)), 1000)
         self.assertEqual(len(self.subset.sampled(1000)), 1000)
+
+    def test_label_count(self):
+        self.assertDictEqual(Counter(self.subset.y), self.subset.y_counts)
+
+    def test_balanced(self):
+        n_samples_per_label = min(self.subset.y_counts[y] for y in self.subset.y_counts)
+        balanced = self.subset.balanced()
+        for y in balanced.y_counts:
+            self.assertEqual(n_samples_per_label, balanced.y_counts[y])
 
 
 class TestDataset(unittest.TestCase):
