@@ -120,7 +120,7 @@ class TrainingSessionBuilder(BaseSessionBuilder):
             subset=self._dataset.train,
             batch=self.args.batch,
             device=self._device,
-            max_steps=self.args.batch,
+            max_steps=self.args.max_steps,
             checkpoint_path=self.args.output,
             report_period=self.args.report_period,
             param_summarize_period=self.args.param_summarize_period,
