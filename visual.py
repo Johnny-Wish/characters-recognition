@@ -260,15 +260,16 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
         self.default_save_path = "Confusion-Matrix-with-{}-samples-from-{}-classes".format(self.n_samples,
                                                                                            self.n_classes)
 
-    def _plot(self, width=6, height=6, **kwargs):
+    def _plot(self, width=15, height=15, **kwargs):
         self.set_width(width).set_height(height)
+        self.fig.suptitle(self.default_save_path.replace("-", " "), fontsize=30)
 
-        annot = kwargs.pop("annot", True)
+        annot = kwargs.pop("annot", False)
         fmt = kwargs.pop("fmt", ".2g")
-        cmap = kwargs.pop("cmap", "YlOrRd")
+        cmap = kwargs.pop("cmap", "Blues")
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
-        xticklabels = kwargs.pop("xticklabels", True)
-        yticklabels = kwargs.pop("yticklabels", True)
+        xticklabels = kwargs.pop("xticklabels", False)
+        yticklabels = kwargs.pop("yticklabels", False)
         square = kwargs.pop("square", True)
 
         sns.heatmap(
@@ -278,8 +279,11 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
             fmt=fmt,
             annot_kws=annot_kws,
             xticklabels=xticklabels,
-            yticklabels=yticklabels
+            yticklabels=yticklabels,
             square=square,
+            **kwargs
         )
 
-        self.fig.suptitle(self.default_save_path.replace("-", " "))
+        plt.xlabel('Predicted label', fontsize=30)
+        plt.ylabel('True label', fontsize=30)
+        plt.tight_layout()
