@@ -79,10 +79,11 @@ class BaseVisualizer:
 
     def show(self, warn=True):
         """
-        shows the figure, must be run before another fig is shown
+        shows the figure, runs self.plot() automatically
         :param warn: refer to matplotlib.pyplot.figure.Figure.show()
         :return: None
         """
+        self.plot(force_replot=False)
         self.fig.show(warn=warn)
 
     def save(self, path=None, **kwargs):
