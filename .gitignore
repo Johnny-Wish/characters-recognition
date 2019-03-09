@@ -12,3 +12,4 @@ test/.cache
 *ipynb
 .ipynb_checkpoints/
 test/view_image.py
+*pth
