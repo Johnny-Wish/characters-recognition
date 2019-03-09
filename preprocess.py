@@ -237,6 +237,17 @@ class Dataset:
     def filter(self, labels, recount_labels=True):
         return self.filter_train(labels, recount_labels).filter_test(labels, recount_labels)
 
+    def balance_train(self, sample_count=None):
+        self._accessible_train = self._accessible_train.balanced(sample_count=sample_count)
+        return self
+
+    def balance_test(self, sample_count=None):
+        self._accessible_test = self._accessible_test.balanced(sample_count=sample_count)
+        return self
+
+    def balance(self, train_sample_count=None, test_sample_count=None):
+        return self.balance_train(sample_count=train_sample_count).balance_test(sample_count=test_sample_count)
+
     @property
     def num_classes(self):
         return self._train.num_classes
