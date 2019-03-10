@@ -20,6 +20,10 @@ class ForwardSession:
     def global_step(self):
         return self._global_step
 
+    @property
+    def n_samples(self):
+        return len(self.subset)
+
     def epoch(self, force_report=False):
         for samples_batch in self.loader:
             # report metrics only at the end of each report_period
@@ -123,4 +127,3 @@ class _SummarySession:
             return
         # for PyTorch>0.4, tensorboardX must be v1.6 or later for the following line to work
         self.writer.add_graph(self.model, input_to_model=input, verbose=False)
-
