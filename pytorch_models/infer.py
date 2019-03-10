@@ -11,13 +11,14 @@ from pytorch_models.torch_utils import get_metrics_dict, prepend_tag
 from pytorch_models.pytorch_args import TorchInferParser, TorchInferArgs
 from pytorch_models.build_session import BaseSessionBuilder
 from tensorboardX import SummaryWriter
+from sklearn.metrics import confusion_matrix
 
 
 class InferenceSession(ForwardSession, _SummarySession):
     def __init__(self, model, subset, batch, device, writer: SummaryWriter = None):
         ForwardSession.__init__(self, model, subset, batch, device, report_period=1)
         _SummarySession.__init__(self, None, writer)
-        self._labels, self._logits, self._preds, self._metrics = None, None, None, None
+        self._labels = self._logits = self._preds = self._metrics = self._confusion_matrix = None
 
     def epoch(self, re_run=False, summarize_embedding=False, summarize_model=False):
         if self._metrics is not None and not re_run:
@@ -39,6 +40,7 @@ class InferenceSession(ForwardSession, _SummarySession):
             self._logits = torch.cat([self._logits, logits], 0)
 
         self._preds = self._logits.max(1)[1]
+        self._confusion_matrix = confusion_matrix(self._labels, self._preds)
         metrics = get_metrics_dict(self._labels, self._preds)
         self._metrics = prepend_tag(metrics, "overall")
 
@@ -82,6 +84,12 @@ class InferenceSession(ForwardSession, _SummarySession):
         if self._metrics is None:
             self.epoch()
         return self._metrics
+
+    @property
+    def confusion_matrix(self):
+        if self._confusion_matrix is None:
+            self.epoch()
+        return self._confusion_matrix
 
 
 class InferenceSessionBuilder(BaseSessionBuilder):
