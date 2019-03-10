@@ -29,6 +29,7 @@ class BaseDatasetParser(_StaticParser):
         self.add_argument("--labels", default=None, help="specify certain labels to be used (all labels by default)")
         self.add_argument("--balance", action="store_true", help="whether to down-sample to balance classes")
         self.add_argument("--size", default=None, type=float, help="size of dataset to be used (1.0 by default)")
+        self.add_argument("--seed", default=None, type=int, help="random seed for dataset if using downsampling")
         return self
 
 
@@ -56,6 +57,10 @@ class BaseDatasetArgs(_StaticRegister):
     @property
     def size(self):
         return self.args.size
+
+    @property
+    def seed(self):
+        return self.args.seed
 
 
 class BaseModelParser(_StaticParser):
