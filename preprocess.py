@@ -90,6 +90,10 @@ class Subset:
     def mapping(self):
         return self._mapping
 
+    @property
+    def mapped_labels(self):
+        return [self._mapping[label] for label in range(self._num_classes)]
+
     def __dict__(self):
         return {"X": self._X, "y": self._y, "mapping": self._mapping, "num_classes": self._num_classes}
 
