@@ -25,7 +25,7 @@ An alternative for steps 3 and 4 is to run the command `python dataset_download.
 
 ### Hypertuning with Sklearn
 
-1. Open terminal and cd the root folder ( `character-recgnition` by default)
+1. Open terminal and cd the root folder ( `character-recognition` by default)
 
 2. Create a python module under `sklearn_models/` with your model to be hypertuned and parameters to be randomly searched. Name the model variable `model` and the param dict `parameter_distribution`, and make sure they are accessible by an external script. (See `sklearn_models/neural_net_adam` for example )
 
@@ -110,7 +110,7 @@ An alternative for steps 3 and 4 is to run the command `python dataset_download.
 
 1. Redo the above steps 1, 2, and 3. Just remember to change `pytorch_models/train.py` to `pytorch_models/infer.py`
 
-2. ```bash
+   ```bash
    usage: infer.py [-h] [--dataroot DATAROOT] [--datafile DATAFILE]
                    [--labels LABELS] [--balance] [--size SIZE] [--batch BATCH]
                    --model MODEL [--pretrained PRETRAINED] [--output OUTPUT]

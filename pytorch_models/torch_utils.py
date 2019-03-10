@@ -101,7 +101,7 @@ class LossRegister:
             return True
         else:
             if verbose:
-                print("Lowest loss remained to {}".format(self._lowest_loss))
+                print("Lowest loss remained {}".format(self._lowest_loss))
             return False
 
     @property

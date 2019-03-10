@@ -123,7 +123,7 @@ class Subset:
 
     def filtered(self, labels=None, recount_labels=True):
         if labels is None:
-            print("No label specified, retuning all data")
+            print("No label specified, returning all data")
             return self.copy()
 
         if isinstance(labels, (list, tuple, set, np.ndarray)):
