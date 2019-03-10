@@ -176,8 +176,15 @@ A simpler version of CNN, referred to as LeNet has been tested. Performance of t
 Some API changes has been made:
 
 1. Abstracted a new `ForwardSession` class and a new `_SummarySession` class from `TrainingSession`.
-2. The class`ReflexiveImporter` has been refactored for general purposes.
+2. Refactored the class`ReflexiveImporter` for general purposes.
 3. Used reflexive API for importing models and corresponding data transformer.
 
 Next step is to implement an `InferenceSession` extending `ForwardSession` and `_SummarySession`, and tools for visualizing model performances.
+
+### Update on Mar 10, 2019
+
+1. Implemented`InferenceSession`  (weeks ago)
+2. Statically registered command line args passed to training, inferring, and hyper-tuning.
+3. Implemented `DataPointVisualizer`,  `DataChunkVisualizer`, and `ConfusionMatrixVisualizer`.
+4. Implemented functionalities of balancing, filtering by label, and random sampling for `Subset` and `Dataset`
 
