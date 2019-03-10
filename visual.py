@@ -237,8 +237,10 @@ class DataChunkVisualizer(BaseVisualizer):
 
 
 class ConfusionMatrixVisualizer(BaseVisualizer):
-    def __init__(self, y_true=None, y_pred=None, labels=None, matrix=None, n_samples=None):
+    def __init__(self, y_true=None, y_pred=None, labels=None, matrix=None):
         super(ConfusionMatrixVisualizer, self).__init__()
+
+        self.labels = labels
 
         if y_true is None and y_pred is not None:
             raise ValueError("y_true and y_pred must be specified both or neither")
@@ -249,27 +251,34 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
         elif y_true is not None and y_pred is not None and matrix is not None:
             raise ValueError("matrix, and y_true/pred cannot be specified together")
 
-        self.n_samples = n_samples
         if matrix is None:
-            self.n_samples = len(y_true)
-            self.matrix = confusion_matrix(y_true, y_pred, labels=labels)
+            self.matrix = confusion_matrix(y_true, y_pred)
         else:
             self.matrix = matrix
+
+        self.n_samples = self.matrix.sum()
         self.n_classes = self.matrix.shape[0]
 
-        self.default_save_path = "Confusion-Matrix-with-{}-samples-from-{}-classes".format(self.n_samples,
+        self.default_save_path = "Confusion-matrix-with-{}-samples-from-{}-classes".format(self.n_samples,
                                                                                            self.n_classes)
 
-    def _plot(self, width=15, height=15, **kwargs):
+    def _plot(self, width=12, height=11, **kwargs):
         self.set_width(width).set_height(height)
-        self.fig.suptitle(self.default_save_path.replace("-", " "), fontsize=30)
+        self.fig.suptitle(self.default_save_path.replace("-", " "), fontsize=22, x=0.47, y=0.96)
 
         annot = kwargs.pop("annot", False)
         fmt = kwargs.pop("fmt", ".2g")
         cmap = kwargs.pop("cmap", "Blues")
         annot_kws = kwargs.pop("annot_kws", dict(fontsize=6))
-        xticklabels = kwargs.pop("xticklabels", False)
-        yticklabels = kwargs.pop("yticklabels", False)
+        xticklabels = kwargs.pop("xticklabels", self.labels)
+        yticklabels = kwargs.pop("yticklabels", self.labels)
+        linewidth = kwargs.pop("linewidth", 0.)
+        linecolor = kwargs.pop("linecolor", "cyan")
+        mask = kwargs.pop("mask", None)
+        if mask and isinstance(mask, bool):
+            mask = np.zeros_like(self.matrix, dtype=np.bool)
+            np.fill_diagonal(mask, np.True_)
+        cbar_kws = kwargs.pop("cbar_kws", dict(shrink=0.8))
         square = kwargs.pop("square", True)
 
         sns.heatmap(
@@ -280,10 +289,14 @@ class ConfusionMatrixVisualizer(BaseVisualizer):
             annot_kws=annot_kws,
             xticklabels=xticklabels,
             yticklabels=yticklabels,
+            linewidths=linewidth,
+            linecolor=linecolor,
+            cbar_kws=cbar_kws,
+            mask=mask,
             square=square,
             **kwargs
         )
 
-        plt.xlabel('Predicted label', fontsize=30)
-        plt.ylabel('True label', fontsize=30)
+        plt.xlabel('PREDICTIONS', fontsize=20)
+        plt.ylabel('GROUND TRUTHS', fontsize=20)
         plt.tight_layout()
