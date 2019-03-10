@@ -28,7 +28,7 @@ class BaseDatasetParser(_StaticParser):
         self.add_argument("--datafile", default="emnist-byclass.mat", help="filename of dataset")
         self.add_argument("--labels", default=None, help="specify certain labels to be used (all labels by default)")
         self.add_argument("--balance", action="store_true", help="whether to down-sample to balance classes")
-        self.add_argument("--size", default=None, help="float, size of dataset to be used (1.0 by default)")
+        self.add_argument("--size", default=None, type=float, help="size of dataset to be used (1.0 by default)")
         return self
 
 
