@@ -15,11 +15,11 @@ In the meanwhile, I would like to set up this project in a docker container in t
 ### Environment Setup
 
 1. Kindly install Python 3.6 and the latest versions of `scikit-learn` , `PyTorch`, `tensorboard`, and `tensorboardX`. Note that `tensorboardX` must be v1.6 or later for `PyTorch` >= 0.4 
-2. Clone the repository to your local machine.
+2. `git clone` the repository to your local machine.
 3. Download the 700 MiB dataset [here](http://www.itl.nist.gov/iaui/vip/cs_links/EMNIST/matlab.zip) and unzip it.
 4. Rename the unzipped folder to `dataset` and move it under the parent directory of this project.
 
-Step 4 is not necessary if you insist on using a different path or folder name. However, relevant changes must be made to the args passed to command line. Otherwise, the default option is to look into a `dataset/` subfolder under the project root.
+Step 4 is not necessary if you insist on using a different path or folder name. However, relevant changes must be made to the args `--dataroot` and `--datafike` passed to command line. Otherwise, the default option is to look into a `dataset/` subfolder under the project root.
 
 An alternative for steps 3 and 4 is to run the command `python dataset_download.py` (make sure you have a python version of 3.x)
 
@@ -29,13 +29,117 @@ An alternative for steps 3 and 4 is to run the command `python dataset_download.
 
 2. Create a python module under `sklearn_models/` with your model to be hypertuned and parameters to be randomly searched. Name the model variable `model` and the param dict `parameter_distribution`, and make sure they are accessible by an external script. (See `sklearn_models/neural_net_adam` for example )
 
-3. Run the following command, specify other relevant arugments if necessary. (See `python -m hypertune -h` for help)
+3. Run the following command, specify other relevant arugments if necessary. (Run `python -m hypertune -h` for help)
 
    ```bash
-   python -m hypertune --model <YOUR_CLASSIFIER_MODLE> --n_iter <NUMBER OF SEARCH ITERATIONS> --cv <NUMBER OF CV FOLDS> --output <FOLDER FOR DUMPING RESULTS>
+   usage: __main__.py [-h] --model MODEL [--dataroot DATAROOT]
+                      [--datafile DATAFILE] [--labels LABELS] [--balance]
+                      [--size SIZE] [--output OUTPUT] [--verbose]
+                      [--n_iter N_ITER] [--cv CV]
+   
+   optional arguments:
+     -h, --help           show this help message and exit
+     --model MODEL        python module (with package prefix) for dynamic model
+                          import
+     --dataroot DATAROOT  folder to hold dataset
+     --datafile DATAFILE  filename of dataset
+     --labels LABELS      specify certain labels to be used (all labels by
+                          default)
+     --balance            whether to down-sample to balance classes
+     --size SIZE          float, size of dataset to be used (1.0 by default)
+     --output OUTPUT      folder to store trained parameters
+     --verbose            verbose tag
+     --n_iter N_ITER      number of iterations for random searching
+     --cv CV              number of folds for cross validation
    ```
 
 4. `n_iter` randomized search will be made, with the CV/test results being printed to screen and saved to the folder `outf`, where `n_iter` and `outf` are specified in the previous step.
+
+### PyTorch
+
+#### Training
+
+1. Open terminal and cd the root folder ( `character-recgnition` by default)
+
+2. Use existent module files under `pytorch_models/` (`alexnet.py` and `lenet.py`) or create a new one.
+
+3. Run the following command, specify other relevant args if necessary. (Run `python pytorch_models/train.py -h` for help):
+
+   ```bash
+   usage: train.py [-h] [--dataroot DATAROOT] [--datafile DATAFILE]
+                   [--labels LABELS] [--balance] [--size SIZE] [--batch BATCH]
+                   --model MODEL [--pretrained PRETRAINED] [--output OUTPUT]
+                   [--verbose] [--report_period REPORT_PERIOD] [--cuda]
+                   [--logdir LOGDIR]
+                   [--param_summarize_period PARAM_SUMMARIZE_PERIOD]
+                   [--max_steps MAX_STEPS] [--train_features] [--checkpoint]
+                   [--n_epochs N_EPOCHS]
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --dataroot DATAROOT   folder to hold dataset
+     --datafile DATAFILE   filename of dataset
+     --labels LABELS       specify certain labels to be used (all labels by
+                           default)
+     --balance             whether to down-sample to balance classes
+     --size SIZE           float, size of dataset to be used (1.0 by default)
+     --batch BATCH         size of mini-batch in this dataset
+     --model MODEL         python module (with package prefix) for dynamic model
+                           import
+     --pretrained PRETRAINED
+                           pretrained path to be passed to the model getter
+     --output OUTPUT       folder to store trained parameters
+     --verbose             verbose tag
+     --report_period REPORT_PERIOD
+                           how frequently to report session metrics, in number of
+                           steps (mini-batches)
+     --cuda                whether to use cuda (if available)
+     --logdir LOGDIR       folder to store tensorboard summaries
+     --param_summarize_period PARAM_SUMMARIZE_PERIOD
+                           how frequently to summarize parameter distributions,
+                           in number of steps (mini-batches)
+     --max_steps MAX_STEPS
+                           max number of steps to run before training is
+                           terminated, disabled by default
+     --train_features      to train the feature layers (disabled by default)
+     --checkpoint          do checkpoint for the model (disabled by default)
+     --n_epochs N_EPOCHS   number of epochs to run
+   ```
+
+#### Inference
+
+1. Redo the above steps 1, 2, and 3. Just remember to change `pytorch_models/train.py` to `pytorch_models/infer.py`
+
+2. ```bash
+   usage: infer.py [-h] [--dataroot DATAROOT] [--datafile DATAFILE]
+                   [--labels LABELS] [--balance] [--size SIZE] [--batch BATCH]
+                   --model MODEL [--pretrained PRETRAINED] [--output OUTPUT]
+                   [--verbose] [--report_period REPORT_PERIOD] [--cuda]
+                   [--logdir LOGDIR]
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --dataroot DATAROOT   folder to hold dataset
+     --datafile DATAFILE   filename of dataset
+     --labels LABELS       specify certain labels to be used (all labels by
+                           default)
+     --balance             whether to down-sample to balance classes
+     --size SIZE           float, size of dataset to be used (1.0 by default)
+     --batch BATCH         size of mini-batch in this dataset
+     --model MODEL         python module (with package prefix) for dynamic model
+                           import
+     --pretrained PRETRAINED
+                           pretrained path to be passed to the model getter
+     --output OUTPUT       folder to store trained parameters
+     --verbose             verbose tag
+     --report_period REPORT_PERIOD
+                           how frequently to report session metrics, in number of
+                           steps (mini-batches)
+     --cuda                whether to use cuda (if available)
+     --logdir LOGDIR       folder to store tensorboard summaries
+   ```
+
+   
 
 ## Unit Tests
 
