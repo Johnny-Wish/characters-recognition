@@ -122,6 +122,12 @@ class Subset:
         return Subset(self._X[index], self._y[index], self._mapping)
 
     def filtered(self, labels=None, recount_labels=True):
+        """
+        filter sample by labels; return a new Subset instance containing only some of the labels
+        :param labels: label or a collection of labels (list, tuple, set, np.ndarray)
+        :param recount_labels: recount number of labels after filtering
+        :return: a new Subset instance
+        """
         if labels is None:
             print("No label specified, returning all data")
             return self.copy()
@@ -140,6 +146,11 @@ class Subset:
         )
 
     def balanced(self, sample_count=None):
+        """
+        downsample on class labels with too many labels, force the dataset to be balanced
+        :param sample_count: number of samples in each class after downsampling
+        :return: a new Subset instance
+        """
         if sample_count is None:
             sample_count = min(self.y_counts[y] for y in self.y_counts)
 
