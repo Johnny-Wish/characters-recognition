@@ -54,7 +54,7 @@ class BaseVisualizer:
             self.fig.set_figheight(height)
         return self
 
-    def plot(self, force_replot=False, **kwargs):
+    def plot(self, replot=False, **kwargs):
         """
         an interface to be called publicly when doing specific plotting.
         DO NOT override this method directly, override the protected `_plot()` instead
@@ -63,7 +63,7 @@ class BaseVisualizer:
         self.activate()  # activate self.fig before doing the actually plotting
         if not self.plotted:
             self._plot(**kwargs)
-        elif force_replot:
+        elif replot:
             self._plot(**kwargs)
         else:
             print("Plotting aborted: figure {} has been previously plotted".format(self.num))
@@ -83,7 +83,7 @@ class BaseVisualizer:
         :param warn: refer to matplotlib.pyplot.figure.Figure.show()
         :return: None
         """
-        self.plot(force_replot=False)
+        self.plot(replot=False)
         self.fig.show(warn=warn)
 
     def save(self, path=None, **kwargs):
