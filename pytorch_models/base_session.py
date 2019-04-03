@@ -71,13 +71,34 @@ class ForwardSession(AbstractSession):
 
 
 class _SummarySession:
-    """
-    This class is extracted from `TrainingSession`, and should not be called directly
-    """
-
-    def __init__(self, param_summarize_period=25, summary_writer: SummaryWriter = None):
-        self.param_summarize_period = param_summarize_period
+    def __init__(self, parameter_summary_period=25,
+                 embedding_summary_period=False,
+                 summary_writer: SummaryWriter = None):
+        """
+        A Mixin class that handles logic for whether summaries should be made; this class should not be instantiated
+        :param parameter_summary_period: int or bool, whether to summarize parameters (or the period to do that)
+        :param embedding_summary_period: int or bool, whether to summarize embeddings (or the period to do that)
+        :param summary_writer: a SummaryWriter from tensorboardX to do summaries
+        """
+        self.parameter_summary_period = parameter_summary_period
+        self.embedding_summary_period = embedding_summary_period
         self.writer = summary_writer
+
+    @property
+    def to_summarize_embedding(self):
+        self._global_step: int
+        if isinstance(self.embedding_summary_period, bool):
+            return self.embedding_summary_period
+        else:
+            return (self._global_step + 1) % self.embedding_summary_period == 0
+
+    @property
+    def to_summarize_parameter(self):
+        self._global_step: int
+        if isinstance(self.parameter_summary_period, bool):
+            return self.parameter_summary_period
+        else:
+            return (self._global_step + 1) % self.parameter_summary_period == 0
 
     def _summarize_metrics(self, d: dict):
         self._global_step: int
