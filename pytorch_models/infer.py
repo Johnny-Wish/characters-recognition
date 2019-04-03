@@ -6,7 +6,7 @@ root_dir = os.path.split(sub_dir)[0]
 sys.path += [sub_dir, root_dir]
 
 import torch
-from pytorch_models.base_session import ForwardSession, _SummarySession
+from pytorch_models.base_session import ForwardSession, SummarizerMixin
 from pytorch_models.torch_utils import get_metrics_dict, prepend_tag
 from pytorch_models.pytorch_args import TorchInferParser, TorchInferArgs
 from pytorch_models.build_session import BaseSessionBuilder
@@ -14,27 +14,33 @@ from tensorboardX import SummaryWriter
 from sklearn.metrics import confusion_matrix
 
 
-class InferenceSession(ForwardSession, _SummarySession):
-    def __init__(self, model, subset, batch, device, writer: SummaryWriter = None):
-        ForwardSession.__init__(self, model, subset, batch, device, report_period=1)
-        _SummarySession.__init__(self, None, writer)
-        self._labels = self._logits = self._preds = self._metrics = self._confusion_matrix = None
+class InferenceSession(ForwardSession, SummarizerMixin):
+    def __init__(self, model, subset, batch, device, writer: SummaryWriter = None, summarize=True, report=True):
+        ForwardSession.__init__(self, model, subset, batch, device, report_period=report)
+        SummarizerMixin.__init__(
+            self,
+            parameter_summary_period=False,
+            embedding_summary_period=summarize,
+            summary_writer=writer
+        )
+        self._name = "infer"
+        self.reset()
 
-    def epoch(self, re_run=False, summarize_embedding=False, summarize_model=False):
-        if self._metrics is not None and not re_run:
-            print("a previous epoch has been run; use re_run=True to force re-run")
+    def reset(self):
+        self._labels = self._logits = self._preds = self._metrics = self._confusion_matrix = None
+        self.to_summarize_model = True
+        return self
+
+    def epoch(self):
+        if self._metrics is not None:
+            print("a previous epoch has been run; run self.reset() to force re-run")
             return
 
         self._labels = torch.zeros(0, dtype=torch.int64, device=self.device)
         self._logits = torch.zeros(0, dtype=torch.float64, device=self.device)
 
         for samples_batch in self.loader:
-            labels, logits = self.step(
-                samples_batch,
-                summarize_embedding=summarize_embedding,
-                summarize_model=summarize_model,
-            )
-            summarize_model = False  # the model only needs to be summarized once
+            labels, logits = self.step(samples_batch)
 
             self._labels = torch.cat([self._labels, labels], 0)
             self._logits = torch.cat([self._logits, logits], 0)
@@ -47,17 +53,18 @@ class InferenceSession(ForwardSession, _SummarySession):
         self._report_metrics(self._metrics)
         self._summarize_metrics(self._metrics)
 
-    def step(self, samples_batch, summarize_embedding=False, summarize_model=False):
+    def step(self, samples_batch):
         with torch.no_grad():  # register no gradients to speed up inference
-            features, labels, logits, metrics = ForwardSession.step(self, samples_batch, report=True, tag="infer")
+            features, labels, logits, metrics = ForwardSession.step(self, samples_batch)
 
         self._summarize_metrics(metrics)
 
-        if summarize_embedding:
+        if self.to_summarize_embedding:
             self.summarize_embedding(features, labels)
 
-        if summarize_model:
+        if self.to_summarize_model:
             self.summarize_model(features)
+            self.to_summarize_model = False  # the model only needs to be updated once
 
         return labels, logits
 
