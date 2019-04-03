@@ -29,7 +29,6 @@ class BaseDatasetParser(_StaticParser):
         self.add_argument("--labels", default=None, help="specify certain labels to be used (all labels by default)")
         self.add_argument("--balance", action="store_true", help="whether to down-sample to balance classes")
         self.add_argument("--size", default=None, type=float, help="size of dataset to be used (1.0 by default)")
-        self.add_argument("--seed", default=None, type=int, help="random seed for dataset if using downsampling")
         return self
 
 
@@ -58,10 +57,6 @@ class BaseDatasetArgs(_StaticRegister):
     def size(self):
         return self.args.size
 
-    @property
-    def seed(self):
-        return self.args.seed
-
 
 class BaseModelParser(_StaticParser):
     def _setup(self):
@@ -80,6 +75,7 @@ class BaseSessionParser(_StaticParser):
     def _setup(self):
         self.add_argument("--output", default="/output", type=str, help="folder to store trained parameters")
         self.add_argument("--verbose", action="store_true", help="verbose tag")
+        self.add_argument("--seed", default=None, type=int, help="random seed for dataset if using downsampling")
 
 
 class BaseSessionArgs(_StaticRegister):
@@ -90,3 +86,7 @@ class BaseSessionArgs(_StaticRegister):
     @property
     def verbose(self):
         return self.args.verbose
+
+    @property
+    def seed(self):
+        return self.args.seed

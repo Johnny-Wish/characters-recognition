@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from tensorboardX import SummaryWriter
 from pytorch_models.pytorch_args import TorchSessionArgs
 from preprocess import Dataset
@@ -29,9 +30,19 @@ class BaseSessionBuilder:
             device=self._device,
         )
 
+    def _seed(self):
+        if self.args.seed is not None:
+            np.random.seed(self.args.seed)
+            if self.args.verbose:
+                print("setting numpy random seed to {}".format(self.args.seed))
+        elif self.args.verbose:
+            print("no random seed specified for numpy")
+
     def _set_dataset(self):
         if self._dataset is not None:
             return
+
+        self._seed()
 
         self._dataset = Dataset(
             filename=self.args.datafile,
