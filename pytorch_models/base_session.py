@@ -53,7 +53,7 @@ class ForwardSession(AbstractSession):
             predictions = logits.max(1)[1]
             metrics = get_metrics_dict(labels, predictions)
 
-        tagged_metrics = prepend_tag(metrics, self._name)
+        tagged_metrics = prepend_tag(metrics, self.name)
 
         if self.to_report:
             self._report_metrics(tagged_metrics)
@@ -70,7 +70,7 @@ class ForwardSession(AbstractSession):
         flush_json_metrics(d, step=self._global_step)
 
 
-class _SummarySession:
+class SummarizerMixin:
     def __init__(self, parameter_summary_period=25,
                  embedding_summary_period=False,
                  summary_writer: SummaryWriter = None):
