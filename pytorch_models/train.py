@@ -30,7 +30,9 @@ class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, Summ
         )
 
         self.max_steps = max_steps
+        self._set_optimizer(optim)
 
+    def _set_optimizer(self, optim):
         if issubclass(optim, Optimizer):
             # only updates the parameters that require gradients
             self.optimizer = optim(filter(lambda p: p.requires_grad, self.model.parameters()))
