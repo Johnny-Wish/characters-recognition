@@ -7,21 +7,27 @@ sys.path += [sub_dir, root_dir]
 
 import torch
 import torch.nn.functional as F
-from pytorch_models.torch_utils import prepend_tag, LossRegister, Checkpointer, EmbedModule
-from pytorch_models.base_session import ForwardSession, _SummarySession
+from pytorch_models.torch_utils import prepend_tag, LossRegisterMixin, CheckpointerMixin, EmbedModule
+from pytorch_models.base_session import ForwardSession, SummarizerMixin
 from pytorch_models.pytorch_args import TorchTrainParser, TorchTrainArgs
 from pytorch_models.build_session import BaseSessionBuilder
 from torch.optim import Adam, Optimizer
 from tensorboardX import SummaryWriter
 
 
-class TrainingSession(LossRegister, Checkpointer, ForwardSession, _SummarySession):
+class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, SummarizerMixin):
     def __init__(self, model: EmbedModule, subset, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
-                 report_period=1, param_summarize_period=25, summary_writer: SummaryWriter = None):
-        LossRegister.__init__(self)
-        Checkpointer.__init__(self, checkpoint_path=checkpoint_path)
+                 report_period=1, parameter_summary_period=25, embedding_summary_period=False,
+                 summary_writer: SummaryWriter = None):
+        LossRegisterMixin.__init__(self)
+        CheckpointerMixin.__init__(self, checkpoint_path=checkpoint_path)
         ForwardSession.__init__(self, model, subset, batch, device, report_period=report_period)
-        _SummarySession.__init__(self, param_summarize_period=param_summarize_period, summary_writer=summary_writer)
+        SummarizerMixin.__init__(
+            self,
+            parameter_summary_period=parameter_summary_period,
+            embedding_summary_period=embedding_summary_period,
+            summary_writer=summary_writer
+        )
 
         self.max_steps = max_steps
 

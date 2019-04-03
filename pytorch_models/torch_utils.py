@@ -85,9 +85,9 @@ def prepend_tag(metrics: dict, tag, sep="/"):
     return {sep.join([tag, key]): value for key, value in metrics.items()}
 
 
-class LossRegister:
+class LossRegisterMixin:
     """
-    a base class which has a `lowest_loss` property, and a `update_lowest_loss` method
+    a mixin class which has a `lowest_loss` property, and a `update_lowest_loss` method
     """
 
     def __init__(self):
@@ -109,9 +109,9 @@ class LossRegister:
         return self._lowest_loss
 
 
-class Checkpointer:
+class CheckpointerMixin:
     """
-    a base class which has a `checkpoint_path` property, and a `checkpoint` method
+    a mix-in class which has a `checkpoint_path` property, and a `checkpoint` method
     """
 
     def __init__(self, checkpoint_path):
