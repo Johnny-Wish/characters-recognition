@@ -13,3 +13,6 @@ test/.cache
 .ipynb_checkpoints/
 test/view_image.py
 *pth
+*csv
+*numbers
+/*png
