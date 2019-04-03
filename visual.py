@@ -209,13 +209,14 @@ class DataChunkVisualizer(BaseVisualizer):
         self.set_width(self.n_cols)
         self.set_height(self.n_rows + 0.25)
         self.fig.suptitle(self.default_save_path.replace("-", " "))
+        subtitle = kwargs.pop("subtitle", True)
 
         for idx, data_point in enumerate(self.chunk):
             plt.subplot(self.n_rows, self.n_cols, idx + 1)
             data, label = data_point
-            self._subplot(data, label, **kwargs)
+            self._subplot(data, label, subtitle=subtitle, **kwargs)
 
-    def _subplot(self, data, label, **kwargs):
+    def _subplot(self, data, label, subtitle=True, **kwargs):
         annot = kwargs.pop("annot", False)
         cmap = kwargs.pop("cmap", "YlOrRd")
         xticklabels = kwargs.pop("xtickslabels", False)
@@ -233,7 +234,8 @@ class DataChunkVisualizer(BaseVisualizer):
             square=square,
             **kwargs
         )
-        plt.title(label)
+        if subtitle:
+            plt.title(label)
 
 
 class ConfusionMatrixVisualizer(BaseVisualizer):
