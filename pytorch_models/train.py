@@ -31,6 +31,7 @@ class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, Summ
 
         self.max_steps = max_steps
         self._set_optimizer(optim)
+        self._name = "train"
 
     def _set_optimizer(self, optim):
         if issubclass(optim, Optimizer):
