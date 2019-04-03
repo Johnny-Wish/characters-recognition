@@ -43,55 +43,56 @@ class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, Summ
         else:
             self.optimizer = Adam(filter(lambda p: p.requires_grad, self.model.parameters()))
 
-    def epoch(self, force_report=False, ignore_max_steps=False, checkpoint=False):
+    def epoch(self, checkpoint=False):
         for samples_batch in self.loader:
-            # report metrics only if the current period ends
-            to_report = force_report or ((self._global_step + 1) % self.report_period == 0)
-            if not self.step(
-                    samples_batch,
-                    report=to_report,
-                    ignore_max_steps=ignore_max_steps,
-                    checkpoint=checkpoint,
-            ):
+            if not self.step(samples_batch):
                 break
-            if self._global_step % self.param_summarize_period == 0:
-                self.summarize_parameters()
 
-    def step(self, samples_batch, report=True, ignore_max_steps=False, force_summarize_model=False, checkpoint=False):
+    def step(self, samples_batch, force_summarize_model=False):
         """
         Train the model for 1 step and collect metrics while increasing global_step by 1.
         In the meantime, summarize the model and/or embeddings w.r.t the input if necessary.
         :param samples_batch: a batch yielded when iterating through a torch.utils.data.DataLoader
-        :param report: whether to report metrics or not
-        :param ignore_max_steps: whether to ignore the internal max_step limit
         :param force_summarize_model: whether to summarize the model regardless of current step
-        :param checkpoint: whether to do checkpoint for the model if a new lowest_loss is reached
         :return: bool, indicate whether the step was successful. False indicates that max_step is reached.
         """
-        if (not ignore_max_steps) and self._global_step >= self.max_steps > 0:
+        if 0 < self.max_steps <= self._global_step:
             print("max_step = {} reached".format(self.max_steps))
             # notify caller that max step is reached
             return False
 
         # feed forward for one step
-        features, labels, logits, tagged_metrics = ForwardSession.step(self, samples_batch, report=report, tag="train")
+        features, labels, logits, tagged_metrics = ForwardSession.step(self, samples_batch)
+
         # only summarize the model (graph) at the first step unless otherwise specified
         if force_summarize_model or self._global_step == 1:
             self.summarize_model(features)
+
         # compute the cross entropy loss
         loss = F.cross_entropy(logits, labels)
-        # update the lowest loss and summarize the embedding if necessary
+
+        # update the lowest loss and do checkpoint if necessary
         loss_updated = self.update_lowest_loss(loss)
-        if checkpoint and loss_updated:
+        if loss_updated and self.do_checkpoint:
             self.checkpoint()
+
+        # summarize embedding if necessary
+        if self.to_summarize_embedding:
             self.summarize_embedding(features, labels, step_id=None)
+
+        # summarize parameters if necessary
+        if self.to_summarize_parameter:
+            self.summarize_parameters()
+
         # report loss if necessary
         loss_dict = {"loss": float(loss)}
-        if report:
+        if self.to_report:
             self._report_metrics(loss_dict)
+
         # summarize all metrics including loss
-        tagged_metrics.update(prepend_tag(loss_dict, "train"))
+        tagged_metrics.update(prepend_tag(loss_dict, self.name))
         self._summarize_metrics(tagged_metrics)
+
         # zero the gradient, backprop through the net, and do an optimization step
         self.optimizer.zero_grad()
         loss.backward()
