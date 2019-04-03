@@ -17,7 +17,7 @@ from tensorboardX import SummaryWriter
 
 class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, SummarizerMixin):
     def __init__(self, model: EmbedModule, subset, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
-                 report_period=1, parameter_summary_period=25, embedding_summary_period=False,
+                 report_period=1, parameter_summary_period=25, embedding_summary_period=False, do_checkpoint=True,
                  summary_writer: SummaryWriter = None):
         LossRegisterMixin.__init__(self)
         CheckpointerMixin.__init__(self, checkpoint_path=checkpoint_path)
@@ -32,6 +32,7 @@ class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, Summ
         self.max_steps = max_steps
         self._set_optimizer(optim)
         self._name = "train"
+        self.do_checkpoint = do_checkpoint
 
     def _set_optimizer(self, optim):
         if issubclass(optim, Optimizer):
