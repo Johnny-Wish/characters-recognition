@@ -134,7 +134,7 @@ class TrainingSessionBuilder(BaseSessionBuilder):
             max_steps=self.args.max_steps,
             checkpoint_path=self.args.output,
             report_period=self.args.report_period,
-            param_summarize_period=self.args.param_summarize_period,
+            parameter_summary_period=self.args.param_summarize_period,
             summary_writer=self._writer,
         )
 
