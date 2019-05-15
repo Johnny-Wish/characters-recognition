@@ -191,17 +191,22 @@ class Subset:
 
 
 class Dataset:
-    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None, transpose=True):
+    def __init__(self, filename="emnist-byclass.mat", folder="dataset", transformer=None, transpose=True,
+                 normalize=True):
         """
         An object representing a dataset, consisting of training set and testing set
         :param filename: name of the .mat file, including extensions
         :param folder: path to the folder containing data files
         :param transformer: a callable instance that transforms the input features, not including transposition
         :param transpose: whether to transpose the flattened representation, recommended for sprites visualization
+        :param normalize: whether to normalize the dataset before using it
         """
         dataset = loadmat(os.path.join(folder, filename)).get("dataset", None)
         train, test, mapping = dataset[0][0]
         train, test = train[0][0], test[0][0]  # `train` and `tests` are tuples of (images, labels, writers)
+        if normalize:
+            train[0] = train[0] / 255.
+            test[0] = test[0] / 255.
 
         if transpose:
             if transformer is None:

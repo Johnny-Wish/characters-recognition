@@ -47,7 +47,8 @@ class BaseSessionBuilder:
         self._dataset = Dataset(
             filename=self.args.datafile,
             folder=self.args.dataroot,
-            transformer=self.importer["transformer"]
+            transformer=self.importer["transformer"],
+            normalize=self.args.normalize,
         )
 
         if self.args.verbose:
