@@ -8,7 +8,7 @@ from tensorboardX import SummaryWriter
 
 
 class ForwardSession(AbstractSession):
-    def __init__(self, model, subset, batch, device, report_period=1):
+    def __init__(self, model, subset, batch, device, report_period=1, verbose=False):
         self.subset = subset  # type: Subset
         self.loader = DataLoader(subset, batch_size=batch, shuffle=True, num_workers=0)
         self.model = model.double().to(device)
@@ -16,7 +16,7 @@ class ForwardSession(AbstractSession):
 
         self.device = device
         self._global_step = 0
-        self.verbose = True
+        self.verbose = verbose
         self._name = "unnamed"
 
     @property

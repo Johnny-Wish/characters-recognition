@@ -18,10 +18,10 @@ from tensorboardX import SummaryWriter
 class TrainingSession(LossRegisterMixin, CheckpointerMixin, ForwardSession, SummarizerMixin):
     def __init__(self, model: EmbedModule, subset, batch, device, max_steps=-1, optim=Adam, checkpoint_path=".",
                  report_period=1, parameter_summary_period=25, embedding_summary_period=False, do_checkpoint=True,
-                 summary_writer: SummaryWriter = None):
+                 summary_writer: SummaryWriter = None, verbose=False):
         LossRegisterMixin.__init__(self)
         CheckpointerMixin.__init__(self, checkpoint_path=checkpoint_path)
-        ForwardSession.__init__(self, model, subset, batch, device, report_period=report_period)
+        ForwardSession.__init__(self, model, subset, batch, device, report_period=report_period, verbose=verbose)
         SummarizerMixin.__init__(
             self,
             parameter_summary_period=parameter_summary_period,

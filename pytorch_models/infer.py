@@ -15,8 +15,9 @@ from sklearn.metrics import confusion_matrix
 
 
 class InferenceSession(ForwardSession, SummarizerMixin):
-    def __init__(self, model, subset, batch, device, writer: SummaryWriter = None, summarize=True, report=True):
-        ForwardSession.__init__(self, model, subset, batch, device, report_period=report)
+    def __init__(self, model, subset, batch, device, writer: SummaryWriter = None, summarize=True, report=True,
+                 verbose=False):
+        ForwardSession.__init__(self, model, subset, batch, device, report_period=report, verbose=verbose)
         SummarizerMixin.__init__(
             self,
             parameter_summary_period=False,
